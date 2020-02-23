@@ -5,8 +5,8 @@ from django.shortcuts import render
 from django.shortcuts import reverse
 from django.http.response import JsonResponse, HttpResponse
 
-from .forms import StoryForm
-from .models import Card, Story
+from .forms import StoryForm, CardForm
+from .models import Card, Story, User
 
 
 @ensure_csrf_cookie
@@ -55,5 +55,60 @@ def save_story(request):
 
 @require_POST
 def delete_story(request, id):
-    Story.objects.filter(id=id).delete()
+    Story.objects.get(id=id).delete()
     return HttpResponse(status=204)
+
+
+@require_POST
+def save_card(request):
+    form = CardForm(request.POST)
+    if form.is_valid():
+        data = form.cleaned_data
+        if data.get("user"):
+            user, _ = User.objects.get_or_create(name=data["user"])
+        else:
+            user = None
+
+        if data.get("id"):
+            card = Card.objects.select_related("user").get(id=data["id"])
+            card.text = data["text"]
+            card.story_id = data["story"]
+            card.status = data["status"]
+        else:
+            card = Card(
+                text=data["text"], story_id=data["story"], status=data["status"]
+            )
+
+        card.user = user
+        card.save()
+
+        return JsonResponse(
+            {
+                "id": str(card.pk),
+                "text": card.text,
+                "user": (
+                    {"name": card.user.name, "color": card.user.color}
+                    if card.user
+                    else None
+                ),
+            }
+        )
+    return JsonResponse(form.errors.get_json_data(), status=400)
+
+
+@require_POST
+def delete_card(request, id):
+    Card.objects.get(id=id).delete()
+    return HttpResponse(status=204)
+
+
+@require_POST
+def move_card(request, id, story, status):
+    if status in Card.Status:
+        card = Card.objects.get(id=id)
+        card.story_id = story
+        card.status = status
+        card.save()
+        return JsonResponse({}, status=200)
+    else:
+        return JsonResponse({"errors": "unknown status"}, status=400)

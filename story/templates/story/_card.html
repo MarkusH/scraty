@@ -1,4 +1,4 @@
-<div data-card-id="{{ card.pk }}" class="card {% if is_source %}hidden{% endif %}"{% if card.user %} style="color: {{ card.user.color }}"{% endif %}{% if is_source %} id="source-card"{% endif %}>
+<div class="card {% if is_source %}hidden{% endif %}"{% if card.user %} style="color: {{ card.user.color }}"{% endif %}{% if is_source %} id="source-card"{% else %} data-card-id="{{ card.pk }}"{% endif %}>
   <div class="display toggle">
     <div class="text">{{ card.text }}</div>
     <div class="user">{{ card.user.name }}</div>
@@ -10,11 +10,13 @@
     <div>
       <input name="user" value="{{ card.user.name }}">
     </div>
-    <div>
+    <div class="errors">
     </div>
   </div>
-  <a name="save-card" class="button-link toggle hidden">✔️</a>
-  <a name="cancel-card" class="button-link toggle hidden">❌</a>
-  <a name="edit-card" class="button-link toggle">✏️</a>
-  <a name="delete-card" class="button-link">🗑️</a>
+  <div class="actions">
+    <a name="save-card" class="button-link toggle hidden">✔️</a>
+    <a name="cancel-card" class="button-link toggle hidden">❌</a>
+    <a name="edit-card" class="button-link toggle">✏️</a>
+    {% if not is_source %}<a name="delete-card" class="button-link">🗑️</a>{% endif %}
+  </div>
 </div>

@@ -15,10 +15,20 @@ Including another URLconf
 """
 from django.urls import path
 
-from story.views import index, save_story, delete_story
+from story.views import (
+    delete_card,
+    delete_story,
+    index,
+    save_card,
+    save_story,
+    move_card,
+)
 
 urlpatterns = [
     path("", index, name="index"),
     path("stories/", save_story, name="save_story"),
     path("stories/<id>/", delete_story, name="delete_story"),
+    path("cards/", save_card, name="save_card"),
+    path("cards/<id>/", delete_card, name="delete_card"),
+    path("cards/<id>/story/<story>/move/<status>/", move_card, name="move_card"),
 ]

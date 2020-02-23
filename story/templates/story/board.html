@@ -30,7 +30,7 @@
       height: 100px;
       border: 1px solid;
       margin: 10px;
-      display: inline-block;
+      float: left;
     }
 
     .hidden {
@@ -52,39 +52,40 @@
     <tr data-story-id="{{ story.pk }}">
       <td>
         <div class="display toggle">
-          <span>{{ story.title }}</span>
-          {% if story.link %}<br><a href="{{ story.link }}">Link</a>{% endif %}
-          <br>
-          <a name="edit-story" class="button-link toggle">✏️</a>
-          <a name="delete-story" class="button-link">🗑️</a>
+          <div class="title">{{ story.title }}</div>
+          <div class="link">{% if story.link %}<a href="{{ story.link }}">Link</a>{% endif %}</div>
         </div>
         <div class="edit toggle hidden">
           <textarea name="title">{{ story.title }}</textarea>
           <input name="link" value="{{ story.link }}">
           <div class="errors"></div>
-          <a name="save-story" class="button-link">✔️</a>
-          <a name="cancel-story" class="button-link">❌</a>
         </div>
-        <input type="button" name="add-card" value="Add Card">
+        <div class="actions">
+          <a name="save-story" class="button-link toggle hidden">✔️</a>
+          <a name="cancel-story" class="button-link toggle hidden">❌</a>
+          <a name="edit-story" class="button-link toggle">✏️</a>
+          <a name="delete-story" class="button-link">🗑️</a>
+          <a name="add-card" class="button-link">🏷️</a>
+        </div>
       </td>
-      <td class="droppable" data-state="todo">
+      <td class="droppable" data-status="TODO">
         {% for card in story.cards_todo %}
-        <div data-card-id="{{ card.pk }}" class="card">{{ card.text }} <span>{{ card.user }}</span></div>
+        {% include "story/_card.html" %}
         {% endfor %}
       </td>
-      <td class="droppable" data-state="in_progress">
+      <td class="droppable" data-status="IN_PROGRESS">
         {% for card in story.cards_in_progress %}
-        <div data-card-id="{{ card.pk }}" class="card">{{ card.text }} <span>{{ card.user }}</span></div>
+        {% include "story/_card.html" %}
         {% endfor %}
       </td>
-      <td class="droppable" data-state="verify">
+      <td class="droppable" data-status="VERIFY">
         {% for card in story.cards_verify %}
-        <div data-card-id="{{ card.pk }}" class="card">{{ card.text }} <span>{{ card.user }}</span></div>
+        {% include "story/_card.html" %}
         {% endfor %}
       </td>
-      <td class="droppable" data-state="done">
+      <td class="droppable" data-status="DONE">
         {% for card in story.cards_done %}
-        <div data-card-id="{{ card.pk }}" class="card">{{ card.text }} <span>{{ card.user }}</span></div>
+        {% include "story/_card.html" %}
         {% endfor %}
       </td>
     </tr>
@@ -92,22 +93,27 @@
     <tr class="hidden" id="source-row">
       <td>
         <div class="display toggle hidden">
+          <div class="title"></div>
+          <div class="link"></div>
         </div>
         <div class="edit toggle">
           <textarea name="title"></textarea>
           <input name="link" value="">
           <div class="errors"></div>
-          <a name="save-story" class="button-link">✔️</a>
-          <a name="cancel-story" class="button-link">❌</a>
+        </div>
+        <div class="actions">
+          <a name="save-story" class="button-link toggle">✔️</a>
+          <a name="cancel-story" class="button-link toggle">❌</a>
+          <a name="edit-story" class="button-link toggle hidden">✏️</a>
         </div>
       </td>
-      <td class="droppable" data-state="todo">
+      <td class="droppable" data-status="TODO">
       </td>
-      <td class="droppable" data-state="in_progress">
+      <td class="droppable" data-status="IN_PROGRESS">
       </td>
-      <td class="droppable" data-state="verify">
+      <td class="droppable" data-status="VERIFY">
       </td>
-      <td class="droppable" data-state="done">
+      <td class="droppable" data-status="DONE">
       </td>
     </tr>
     <tr>
@@ -125,6 +131,9 @@
       var urls = {
         save_story: "/stories/",
         delete_story: "/stories/:id/",
+        save_card: "/cards/",
+        delete_card: "/cards/:id/",
+        move_card: "/cards/:id/story/:story/move/:status/",
       }
       var draggable_options = { revert: true, revertDuration: 0 };
 
@@ -160,32 +169,28 @@
         var that = $(this);
         var td = that.parent().parent();
         var tr = td.parent();
-        var is_new = (tr.data("story-id") === "undefined") ? true : false;
+        var is_new = tr.data("story-id") === undefined;
         $.ajax({
           type: "POST",
           url: urls.save_story,
           data: {
             id: tr.data("story-id"),
-            title: $("[name=title]", that.parent()).val(),
-            link: $("[name=link]", that.parent()).val(),
+            title: $("[name=title]", td).val(),
+            link: $("[name=link]", td).val(),
           },
         }).done(
           function (data) {
             tr.attr("data-story-id", data.id);
             $(".errors", td).empty();
-            var display = $(".display", td);
-            display.empty();
-            display.append($("<span>").text(data.title));
+            $(".display .title", td).text(data.title);
+            $(".display .link", td).empty();
             if (data.link !== "") {
-              display.append($("<br>"))
-                .append($("<a>Link</a>").attr("href", data.link));
+              $(".display .link", td).append($("<a>Link</a>").attr("href", data.link));
             }
-            display.append($("<br>"))
-              .append($('<a name="edit-story" class="button-link toggle hidden">✏️</a>').click(edit_story))
-              .append($('<a name="delete-story" class="button-link">🗑️</a>').click(delete_story));
             $(".toggle", td).toggleClass("hidden");
             if (is_new) {
-              td.append($('<input type="button" name="add-card" value="Add Card">').click(add_card));
+              $(".actions", td).append($('<a name="delete-story" class="button-link">🗑️</a>').click(delete_story))
+                .append($('<a name="add-card" class="button-link">🏷️</a>').click(add_card));
             }
           }
         ).fail(
@@ -206,9 +211,10 @@
       });
 
       function delete_story(e) {
-        var tr = $(this).parent().parent().parent();
+        var td = $(this).parent().parent();
+        var tr = td.parent();
         var id = tr.data("story-id");
-        var text = $(this).parent().children().first().text().trim();
+        var text = $(".display .title", td).text().trim();
         if (window.confirm(`Do you really want to delete the story "${text}"`)) {
           $.ajax({
             type: "POST",
@@ -234,39 +240,125 @@
         $("[name=save-card]", card).click(save_card);
         $("[name=cancel-card]", card).click(cancel_card);
         $("[name=delete-card]", card).click(delete_card);
+        $(".toggle", card).toggleClass("hidden");
         card.removeAttr("id")
-          .appendTo($(this).parent().next())
+          .appendTo($(this).parent().parent().next())
           .draggable(draggable_options)
           .removeClass("hidden");
         e.preventDefault();
       };
       $("[name=add-card]").click(add_card);
+
       function edit_card(e) {
-        e.preventDefault();
-      }
-      function save_card(e) {
-        e.preventDefault();
-      }
-      function cancel_card(e) {
-        e.preventDefault();
-      }
-      function delete_card(e) {
+        $(".toggle", $(this).parent().parent()).toggleClass("hidden");
         e.preventDefault();
       }
       $("table [name=edit-card]").click(edit_card);
+
+      function save_card(e) {
+        var card = $(this).parent().parent();
+        var column = card.parent();
+        var story = column.parent();
+        var is_new = card.data("card-id") === undefined;
+        var data = {
+          id: card.data("card-id"),
+          story: story.data("story-id"),
+          text: $("[name=text]", card).val().trim(),
+          status: column.data("status")
+        }
+        var user = $("[name=user]", card).val().trim();
+        if (user !== "") {
+          data.user = user;
+        }
+        $.ajax({
+          type: "POST",
+          url: urls.save_card,
+          data: data,
+        }).done(
+          function (data) {
+            card.attr("data-card-id", data.id);
+            $(".errors", card).empty();
+            $(".display .text", card).text(data.text);
+            if (data.user !== null) {
+              $(".display .user", card).text(data.user.name);
+              card.css("background-color", data.user.color);
+              $(".display .link", card).append($("<a>Link</a>").attr("href", data.link));
+            } else {
+              $(".display .user", card).empty();
+              card.css("background-color", "");
+            }
+            $(".toggle", card).toggleClass("hidden");
+            if (is_new) {
+              $(".actions", card).append($('<a name="delete-card" class="button-link">🗑️</a>').click(delete_card))
+            }
+          }
+        ).fail(
+          function (xhr) {
+            data = xhr.responseJSON;
+            console.log(data);
+            var errors = $(".errors", card);
+            errors.empty();
+            $.each(data, function (f, v) {
+              var row = `${f}:`;
+              $.each(v, function (i, t) { var m = t.message; row = `${row} ${m}` });
+              errors.append(row);
+              errors.append($("<br>"));
+            })
+          }
+        );
+        e.preventDefault();
+      }
       $("table [name=save-card]").click(save_card);
+
+      function cancel_card(e) {
+        $(".toggle", $(this).parent().parent()).toggleClass("hidden");
+        e.preventDefault();
+      }
       $("table [name=cancel-card]").click(cancel_card);
+
+      function delete_card(e) {
+        var card = $(this).parent().parent();
+        var id = card.data("card-id");
+        var text = $(".display .text", card).text().trim();
+        if (window.confirm(`Do you really want to delete the card "${text}"`)) {
+          $.ajax({
+            type: "POST",
+            url: urls.delete_card.replace(/:id/, id),
+          }).done(
+            function (data) {
+              card.remove();
+            }
+          ).fail(
+            function (xhr) {
+              console.log(xhr.responseText);
+            }
+          );
+        }
+        e.preventDefault();
+      }
       $("table [name=delete-card]").click(delete_card);
 
       $(".card").draggable(draggable_options);
 
       $(".droppable").droppable({
         drop: function (event, ui) {
-          var state = $(this).data("state");
-          $(".state", ui.draggable).text(state);
+          var that = $(this);
+          var id = ui.draggable.data("card-id");
           var story_id = $(this).parent().data("story-id");
-          $(".story", ui.draggable).text(story_id);
-          $(this).append(ui.draggable);
+          var status = $(this).data("status");
+          $.ajax({
+            type: "POST",
+            url: urls.move_card.replace(/:id/, id).replace(/:story/, story_id).replace(/:status/, status),
+          }).done(
+            function (data) {
+              ui.draggable.appendTo(that);
+            }
+          ).fail(
+            function (xhr) {
+              console.log(xhr.responseText);
+              ui.draggable.revert();
+            }
+          );
         }
       });
     });

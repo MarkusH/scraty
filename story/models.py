@@ -25,7 +25,7 @@ class Card(models.Model):
     text = models.TextField()
     story = models.ForeignKey(Story, on_delete=models.CASCADE, related_name="cards")
     user = models.ForeignKey(
-        User, null=True, on_delete=models.SET_NULL, related_name="cards"
+        User, blank=True, null=True, on_delete=models.SET_NULL, related_name="cards"
     )
     status = models.CharField(
         max_length=11, choices=Status.choices, default=Status.TODO
