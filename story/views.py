@@ -1,11 +1,11 @@
+from django.db.models import Prefetch
+from django.forms.models import modelformset_factory
+from django.http.response import HttpResponse, JsonResponse
+from django.shortcuts import redirect, render, reverse
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_POST
-from django.db.models import Prefetch
-from django.shortcuts import render
-from django.shortcuts import reverse
-from django.http.response import JsonResponse, HttpResponse
 
-from .forms import StoryForm, CardForm
+from .forms import CardForm, StoryForm
 from .models import Card, Story, User
 
 
@@ -112,3 +112,17 @@ def move_card(request, id, story, status):
         return JsonResponse({}, status=200)
     else:
         return JsonResponse({"errors": "unknown status"}, status=400)
+
+
+def users(request):
+    FormSet = modelformset_factory(
+        User, extra=5, can_delete=True, fields=("name", "color")
+    )
+    if request.method == "POST":
+        formset = FormSet(request.POST)
+        if formset.is_valid():
+            formset.save()
+            return redirect("users")
+    else:
+        formset = FormSet(queryset=User.objects.all())
+    return render(request, "story/users.html", context={"formset": formset})

@@ -4,7 +4,7 @@ from django.db import models
 
 class User(models.Model):
     name = models.CharField(max_length=50, primary_key=True)
-    color = models.CharField(max_length=6)
+    color = models.CharField(max_length=6, blank=True)
 
 
 class Story(models.Model):

@@ -4,10 +4,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>jQuery UI Droppable - Default functionality</title>
+  <title>Scraty</title>
   <style>
     body {
-      margin: 0;
+      margin: 10px;
     }
 
     table {
@@ -21,6 +21,17 @@
       vertical-align: top;
     }
 
+    .stories {
+      width: 250px;
+    }
+    .stories textarea,
+    .stories input {
+      width: 244px;
+      border: 1px solid;
+      padding: 1px;
+      margin: 1px;
+    }
+
     .button-link {
       cursor: pointer;
     }
@@ -31,6 +42,26 @@
       border: 1px solid;
       margin: 10px;
       float: left;
+      font-size: 0.8rem;
+    }
+
+    .card .actions {
+      background-color: #e0e0e0;
+      text-align: right;
+    }
+
+    .card .display {
+      max-width: 94px;
+      padding: 1px;
+      margin: 1px;
+    }
+
+    .card textarea,
+    .card input {
+      width: 94px;
+      border: 1px solid;
+      padding: 1px;
+      margin: 1px;
     }
 
     .hidden {
@@ -42,22 +73,22 @@
 <body>
   <table>
     <tr>
-      <td></td>
-      <td>TODO</td>
-      <td>DOING</td>
-      <td>VERIFY</td>
-      <td>DONE</td>
+      <td class="stories"></td>
+      <td>Todo</td>
+      <td>In Progrss</td>
+      <td>Verify</td>
+      <td>Done</td>
     </tr>
     {% for story in stories %}
     <tr data-story-id="{{ story.pk }}">
-      <td>
+      <td class="stories">
         <div class="display toggle">
           <div class="title">{{ story.title }}</div>
           <div class="link">{% if story.link %}<a href="{{ story.link }}">Link</a>{% endif %}</div>
         </div>
         <div class="edit toggle hidden">
-          <textarea name="title">{{ story.title }}</textarea>
-          <input name="link" value="{{ story.link }}">
+          <textarea name="title" placeholder="Title">{{ story.title }}</textarea>
+          <input name="link" value="{{ story.link }}" placeholder="Link">
           <div class="errors"></div>
         </div>
         <div class="actions">
@@ -91,14 +122,14 @@
     </tr>
     {% endfor %}
     <tr class="hidden" id="source-row">
-      <td>
+      <td class="stories">
         <div class="display toggle hidden">
           <div class="title"></div>
           <div class="link"></div>
         </div>
         <div class="edit toggle">
-          <textarea name="title"></textarea>
-          <input name="link" value="">
+          <textarea name="title" placeholder="Title"></textarea>
+          <input name="link" value="" placeholder="Link">
           <div class="errors"></div>
         </div>
         <div class="actions">
@@ -121,6 +152,8 @@
     </tr>
   </table>
 
+  <a href="{% url 'users' %}">Manage Users</a>
+
   {% include "story/_card.html" with is_source=True %}
 
   <script src="https://cdn.jsdelivr.net/npm/js-cookie@beta/dist/js.cookie.min.js"></script>
@@ -135,7 +168,12 @@
         delete_card: "/cards/:id/",
         move_card: "/cards/:id/story/:story/move/:status/",
       }
-      var draggable_options = { revert: true, revertDuration: 0 };
+      var draggable_options = {
+        handle: ".actions",
+        revert: true,
+        revertDuration: 0,
+        zIndex: 9999,
+      };
 
       function csrfSafeMethod(method) {
         // these HTTP methods do not require CSRF protection
@@ -162,7 +200,12 @@
       $("[name=edit-story]").click(edit_story);
 
       $("[name=cancel-story]").click(function (e) {
-        $(".toggle", $(this).parent().parent()).toggleClass("hidden");
+        var story = $(this).parent().parent().parent();
+        if (story.data("story-id") === undefined) {
+          story.remove()
+        } else {
+          $(".toggle", $(this).parent().parent()).toggleClass("hidden");
+        }
       });
 
       $("[name=save-story]").click(function (e) {
@@ -190,6 +233,7 @@
             $(".toggle", td).toggleClass("hidden");
             if (is_new) {
               $(".actions", td).append($('<a name="delete-story" class="button-link">🗑️</a>').click(delete_story))
+                .append(" ")
                 .append($('<a name="add-card" class="button-link">🏷️</a>').click(add_card));
             }
           }
@@ -281,7 +325,7 @@
             $(".display .text", card).text(data.text);
             if (data.user !== null) {
               $(".display .user", card).text(data.user.name);
-              card.css("background-color", data.user.color);
+              card.css("background-color", `#${data.user.color}`);
               $(".display .link", card).append($("<a>Link</a>").attr("href", data.link));
             } else {
               $(".display .user", card).empty();
@@ -356,7 +400,6 @@
           ).fail(
             function (xhr) {
               console.log(xhr.responseText);
-              ui.draggable.revert();
             }
           );
         }

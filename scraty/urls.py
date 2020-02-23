@@ -22,6 +22,7 @@ from story.views import (
     save_card,
     save_story,
     move_card,
+    users,
 )
 
 urlpatterns = [
@@ -31,4 +32,5 @@ urlpatterns = [
     path("cards/", save_card, name="save_card"),
     path("cards/<id>/", delete_card, name="delete_card"),
     path("cards/<id>/story/<story>/move/<status>/", move_card, name="move_card"),
+    path("users/", users, name="users"),
 ]
