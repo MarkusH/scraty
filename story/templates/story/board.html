@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>jQuery UI Droppable - Default functionality</title>
+  <style>
+    body {
+      margin: 0;
+    }
+
+    table {
+      border-collapse: collapse;
+      border-spacing: 0;
+      width: 100%;
+    }
+
+    td {
+      border: 1px solid;
+      vertical-align: top;
+    }
+
+    .button-link {
+      cursor: pointer;
+    }
+
+    .card {
+      width: 100px;
+      height: 100px;
+      border: 1px solid;
+      margin: 10px;
+      display: inline-block;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <table>
+    <tr>
+      <td></td>
+      <td>TODO</td>
+      <td>DOING</td>
+      <td>VERIFY</td>
+      <td>DONE</td>
+    </tr>
+    {% for story in stories %}
+    <tr data-story-id="{{ story.pk }}">
+      <td>
+        <div class="display toggle">
+          <span>{{ story.title }}</span>
+          {% if story.link %}<br><a href="{{ story.link }}">Link</a>{% endif %}
+          <br>
+          <a name="edit-story" class="button-link toggle">✏️</a>
+          <a name="delete-story" class="button-link">🗑️</a>
+        </div>
+        <div class="edit toggle hidden">
+          <textarea name="title">{{ story.title }}</textarea>
+          <input name="link" value="{{ story.link }}">
+          <div class="errors"></div>
+          <a name="save-story" class="button-link">✔️</a>
+          <a name="cancel-story" class="button-link">❌</a>
+        </div>
+        <input type="button" name="add-card" value="Add Card">
+      </td>
+      <td class="droppable" data-state="todo">
+        {% for card in story.cards_todo %}
+        <div data-card-id="{{ card.pk }}" class="card">{{ card.text }} <span>{{ card.user }}</span></div>
+        {% endfor %}
+      </td>
+      <td class="droppable" data-state="in_progress">
+        {% for card in story.cards_in_progress %}
+        <div data-card-id="{{ card.pk }}" class="card">{{ card.text }} <span>{{ card.user }}</span></div>
+        {% endfor %}
+      </td>
+      <td class="droppable" data-state="verify">
+        {% for card in story.cards_verify %}
+        <div data-card-id="{{ card.pk }}" class="card">{{ card.text }} <span>{{ card.user }}</span></div>
+        {% endfor %}
+      </td>
+      <td class="droppable" data-state="done">
+        {% for card in story.cards_done %}
+        <div data-card-id="{{ card.pk }}" class="card">{{ card.text }} <span>{{ card.user }}</span></div>
+        {% endfor %}
+      </td>
+    </tr>
+    {% endfor %}
+    <tr class="hidden" id="source-row">
+      <td>
+        <div class="display toggle hidden">
+        </div>
+        <div class="edit toggle">
+          <textarea name="title"></textarea>
+          <input name="link" value="">
+          <div class="errors"></div>
+          <a name="save-story" class="button-link">✔️</a>
+          <a name="cancel-story" class="button-link">❌</a>
+        </div>
+      </td>
+      <td class="droppable" data-state="todo">
+      </td>
+      <td class="droppable" data-state="in_progress">
+      </td>
+      <td class="droppable" data-state="verify">
+      </td>
+      <td class="droppable" data-state="done">
+      </td>
+    </tr>
+    <tr>
+      <td colspan="5"><a id="add-story">Add a story</a></td>
+    </tr>
+  </table>
+
+  {% include "story/_card.html" with is_source=True %}
+
+  <script src="https://cdn.jsdelivr.net/npm/js-cookie@beta/dist/js.cookie.min.js"></script>
+  <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <script>
+    $(function () {
+      var urls = {
+        save_story: "/stories/",
+        delete_story: "/stories/:id/",
+      }
+      var draggable_options = { revert: true, revertDuration: 0 };
+
+      function csrfSafeMethod(method) {
+        // these HTTP methods do not require CSRF protection
+        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+      }
+
+      $.ajaxSetup({
+        beforeSend: function (xhr, settings) {
+          if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+            xhr.setRequestHeader("X-CSRFToken", Cookies.get("csrftoken"));
+          }
+        }
+      });
+
+      $("#add-story").click(function (e) {
+        var source_row = $("#source-row");
+        $("#source-row").clone(true).removeAttr("id").insertBefore(source_row).removeClass("hidden");
+        e.preventDefault();
+      });
+
+      function edit_story(e) {
+        $(".toggle", $(this).parent().parent()).toggleClass("hidden");
+      }
+      $("[name=edit-story]").click(edit_story);
+
+      $("[name=cancel-story]").click(function (e) {
+        $(".toggle", $(this).parent().parent()).toggleClass("hidden");
+      });
+
+      $("[name=save-story]").click(function (e) {
+        var that = $(this);
+        var td = that.parent().parent();
+        var tr = td.parent();
+        var is_new = (tr.data("story-id") === "undefined") ? true : false;
+        $.ajax({
+          type: "POST",
+          url: urls.save_story,
+          data: {
+            id: tr.data("story-id"),
+            title: $("[name=title]", that.parent()).val(),
+            link: $("[name=link]", that.parent()).val(),
+          },
+        }).done(
+          function (data) {
+            tr.attr("data-story-id", data.id);
+            $(".errors", td).empty();
+            var display = $(".display", td);
+            display.empty();
+            display.append($("<span>").text(data.title));
+            if (data.link !== "") {
+              display.append($("<br>"))
+                .append($("<a>Link</a>").attr("href", data.link));
+            }
+            display.append($("<br>"))
+              .append($('<a name="edit-story" class="button-link toggle hidden">✏️</a>').click(edit_story))
+              .append($('<a name="delete-story" class="button-link">🗑️</a>').click(delete_story));
+            $(".toggle", td).toggleClass("hidden");
+            if (is_new) {
+              td.append($('<input type="button" name="add-card" value="Add Card">').click(add_card));
+            }
+          }
+        ).fail(
+          function (xhr) {
+            data = xhr.responseJSON;
+            console.log(data);
+            var errors = $(".errors", td);
+            errors.empty();
+            $.each(data, function (f, v) {
+              var row = `${f}:`;
+              $.each(v, function (i, t) { var m = t.message; row = `${row} ${m}` });
+              errors.append(row);
+              errors.append($("<br>"));
+            })
+          }
+        );
+        e.preventDefault();
+      });
+
+      function delete_story(e) {
+        var tr = $(this).parent().parent().parent();
+        var id = tr.data("story-id");
+        var text = $(this).parent().children().first().text().trim();
+        if (window.confirm(`Do you really want to delete the story "${text}"`)) {
+          $.ajax({
+            type: "POST",
+            url: urls.delete_story.replace(/:id/, tr.data("story-id")),
+          }).done(
+            function (data) {
+              tr.remove();
+            }
+          ).fail(
+            function (xhr) {
+              console.log(xhr.responseText);
+            }
+          );
+        }
+        e.preventDefault();
+      }
+      $("[name=delete-story]").click(delete_story);
+
+
+      function add_card(e) {
+        var card = $("#source-card").clone();
+        $("[name=edit-card]", card).click(edit_card);
+        $("[name=save-card]", card).click(save_card);
+        $("[name=cancel-card]", card).click(cancel_card);
+        $("[name=delete-card]", card).click(delete_card);
+        card.removeAttr("id")
+          .appendTo($(this).parent().next())
+          .draggable(draggable_options)
+          .removeClass("hidden");
+        e.preventDefault();
+      };
+      $("[name=add-card]").click(add_card);
+      function edit_card(e) {
+        e.preventDefault();
+      }
+      function save_card(e) {
+        e.preventDefault();
+      }
+      function cancel_card(e) {
+        e.preventDefault();
+      }
+      function delete_card(e) {
+        e.preventDefault();
+      }
+      $("table [name=edit-card]").click(edit_card);
+      $("table [name=save-card]").click(save_card);
+      $("table [name=cancel-card]").click(cancel_card);
+      $("table [name=delete-card]").click(delete_card);
+
+      $(".card").draggable(draggable_options);
+
+      $(".droppable").droppable({
+        drop: function (event, ui) {
+          var state = $(this).data("state");
+          $(".state", ui.draggable).text(state);
+          var story_id = $(this).parent().data("story-id");
+          $(".story", ui.draggable).text(story_id);
+          $(this).append(ui.draggable);
+        }
+      });
+    });
+  </script>
+
+</body>
+
+</html>

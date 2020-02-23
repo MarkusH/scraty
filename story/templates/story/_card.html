@@ -1,0 +1,20 @@
+<div data-card-id="{{ card.pk }}" class="card {% if is_source %}hidden{% endif %}"{% if card.user %} style="color: {{ card.user.color }}"{% endif %}{% if is_source %} id="source-card"{% endif %}>
+  <div class="display toggle">
+    <div class="text">{{ card.text }}</div>
+    <div class="user">{{ card.user.name }}</div>
+  </div>
+  <div class="edit toggle hidden">
+    <div>
+      <textarea name="text">{{ card.text }}</textarea>
+    </div>
+    <div>
+      <input name="user" value="{{ card.user.name }}">
+    </div>
+    <div>
+    </div>
+  </div>
+  <a name="save-card" class="button-link toggle hidden">✔️</a>
+  <a name="cancel-card" class="button-link toggle hidden">❌</a>
+  <a name="edit-card" class="button-link toggle">✏️</a>
+  <a name="delete-card" class="button-link">🗑️</a>
+</div>
