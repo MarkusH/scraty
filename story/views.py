@@ -9,6 +9,21 @@ from .forms import CardForm, StoryForm
 from .models import Card, Story, User
 
 
+def serialize_cards(cards):
+    return [
+        {
+            "id": str(card.pk),
+            "text": card.text,
+            "user": (
+                {"name": card.user.name, "color": card.user.color}
+                if card.user
+                else None
+            ),
+        }
+        for card in cards
+    ]
+
+
 @ensure_csrf_cookie
 def index(request):
     cards_qs = Card.objects.select_related("user")
@@ -26,7 +41,7 @@ def index(request):
         Prefetch(
             "cards",
             queryset=cards_qs.filter(status=Card.Status.VERIFY),
-            to_attr="cards_verifie",
+            to_attr="cards_verify",
         ),
         Prefetch(
             "cards",
@@ -34,7 +49,21 @@ def index(request):
             to_attr="cards_done",
         ),
     )
-    context = {"stories": stories, "urls": {"save_story": reverse("save_story")}}
+    # context = {"stories": stories, "urls": {"save_story": reverse("save_story")}}
+    context = {
+        "stories": [
+            {
+                "id": str(story.pk),
+                "title": story.title,
+                "link": story.link,
+                "cardsTodo": serialize_cards(story.cards_todo),
+                "cardsInProgress": serialize_cards(story.cards_in_progress),
+                "cardsVerify": serialize_cards(story.cards_verify),
+                "cardsDone": serialize_cards(story.cards_done),
+            }
+            for story in stories
+        ]
+    }
     return render(request, "story/board.html", context=context)
 
 

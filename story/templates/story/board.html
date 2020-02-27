@@ -24,6 +24,7 @@
     .stories {
       width: 250px;
     }
+
     .stories textarea,
     .stories input {
       width: 244px;
@@ -71,7 +72,53 @@
 </head>
 
 <body>
-  <table>
+  <div id="app">
+    <table>
+      <tr>
+        <td class="stories"></td>
+        <td>Todo</td>
+        <td>In Progrss</td>
+        <td>Verify</td>
+        <td>Done</td>
+      </tr>
+      <tr v-for="(story, story_index) in stories" :key="story.id">
+        <td class="stories">
+          <div class="display" v-show="!story.editing">
+            <div class="title">{% verbatim %}{{ story.title }}{% endverbatim %}</div>
+            <div v-show="story.link" class="link"><a :href="story.link">Link</a></div>
+          </div>
+          <div class="display" v-show="story.editing">
+            <textarea v-model.lazy.trim="story.title" placeholder="Title"></textarea>
+            <input v-model.lazy.trim="story.link" placeholder="Link">
+            <div class="errors" v-for="(errors, field) in story.errors">{% verbatim %}{{ field }}: <span v-for="error in errors">{{ error.message }}</span>{% endverbatim %}</div>
+          </div>
+          <div class="actions">
+            <a v-on:click="saveStory(story)" class="button-link" v-show="story.editing">✔️</a>
+            <a v-on:click="toggleStoryForm(story, story_index)" class="button-link" v-show="story.editing">❌</a>
+            <a v-on:click="toggleStoryForm(story, story_index)" class="button-link" v-show="!story.editing">✏️</a>
+            <a v-on:click="deleteStory(story, story_index)" class="button-link" v-show="story.id">🗑️</a>
+            <a v-on:click="addCard(story)" class="button-link" v-show="story.id">🏷️</a>
+          </div>
+        </td>
+        <td v-on:drop.prevent="handleDrop">
+          <card v-for="card in story.cardsTodo" :key="card.id" :card="card" :story-id="story.id" status="TODO"></card>
+        </td>
+        <td v-on:drop.prevent="handleDrop">
+          <card v-for="card in story.cardsInProgress" :key="card.id" :card="card" :story-id="story.id" status="IN_PROGRESS"></card>
+        </td>
+        <td v-on:drop.prevent="handleDrop">
+          <card v-for="card in story.cardsVerify" :key="card.id" :card="card" :story-id="story.id" status="VERIFY"></card>
+        </td>
+        <td v-on:drop.prevent="handleDrop">
+          <card v-for="card in story.cardsDone" :key="card.id" :card="card" :story-id="story.id" status="DONE"></card>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="5"><a v-on:click="addStory()">Add a story</a></td>
+      </tr>
+    </table>
+  </div>
+  <table class="hidden">
     <tr>
       <td class="stories"></td>
       <td>Todo</td>
@@ -79,48 +126,32 @@
       <td>Verify</td>
       <td>Done</td>
     </tr>
-    {% for story in stories %}
+    {# % for story in stories % #}
     <tr data-story-id="{{ story.pk }}">
       <td class="stories">
-        <div class="display toggle">
-          <div class="title">{{ story.title }}</div>
-          <div class="link">{% if story.link %}<a href="{{ story.link }}">Link</a>{% endif %}</div>
-        </div>
-        <div class="edit toggle hidden">
-          <textarea name="title" placeholder="Title">{{ story.title }}</textarea>
-          <input name="link" value="{{ story.link }}" placeholder="Link">
-          <div class="errors"></div>
-        </div>
-        <div class="actions">
-          <a name="save-story" class="button-link toggle hidden">✔️</a>
-          <a name="cancel-story" class="button-link toggle hidden">❌</a>
-          <a name="edit-story" class="button-link toggle">✏️</a>
-          <a name="delete-story" class="button-link">🗑️</a>
-          <a name="add-card" class="button-link">🏷️</a>
-        </div>
       </td>
       <td class="droppable" data-status="TODO">
-        {% for card in story.cards_todo %}
-        {% include "story/_card.html" %}
-        {% endfor %}
+        {# % for card in story.cards_todo % #}
+        {# % include "story/_card.html" % #}
+        {# % endfor % #}
       </td>
       <td class="droppable" data-status="IN_PROGRESS">
-        {% for card in story.cards_in_progress %}
-        {% include "story/_card.html" %}
-        {% endfor %}
+        {# % for card in story.cards_in_progress % #}
+        {# % include "story/_card.html" % #}
+        {# % endfor % #}
       </td>
       <td class="droppable" data-status="VERIFY">
-        {% for card in story.cards_verify %}
-        {% include "story/_card.html" %}
-        {% endfor %}
+        {# % for card in story.cards_verify % #}
+        {# % include "story/_card.html" % #}
+        {# % endfor % #}
       </td>
       <td class="droppable" data-status="DONE">
-        {% for card in story.cards_done %}
-        {% include "story/_card.html" %}
-        {% endfor %}
+        {# % for card in story.cards_done % #}
+        {# % include "story/_card.html" % #}
+        {# % endfor % #}
       </td>
     </tr>
-    {% endfor %}
+    {# % endfor % #}
     <tr class="hidden" id="source-row">
       <td class="stories">
         <div class="display toggle hidden">
@@ -154,27 +185,51 @@
 
   <a href="{% url 'users' %}">Manage Users</a>
 
-  {% include "story/_card.html" with is_source=True %}
+  {# % include "story/_card.html" with is_source=True % #}
 
+  {% if True %}
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  {% else %}
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.6.11"></script>
+  {% endif %}
   <script src="https://cdn.jsdelivr.net/npm/js-cookie@beta/dist/js.cookie.min.js"></script>
   <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
   <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-  <script>
-    $(function () {
-      var urls = {
-        save_story: "/stories/",
-        delete_story: "/stories/:id/",
-        save_card: "/cards/",
-        delete_card: "/cards/:id/",
-        move_card: "/cards/:id/story/:story/move/:status/",
-      }
-      var draggable_options = {
-        handle: ".actions",
-        revert: true,
-        revertDuration: 0,
-        zIndex: 9999,
-      };
+  {{ stories | json_script:"stories-data" }}
 
+  <script type="text/x-template" id="card-template">
+    <div class="card" :style="{ backgroundColor: '#' + color }" draggable>
+      <div class="actions">
+        <a v-on:click="save" class="button-link" v-show="editing">✔️</a>
+        <a v-on:click="abortEdit" class="button-link" v-show="editing">❌</a>
+        <a v-on:click="startEdit" class="button-link" v-show="!editing">✏️</a>
+        <a v-on:click="remove" class="button-link" v-show="id">🗑️</a>
+      </div>
+      <div class="display" v-show="!editing">
+        <div class="text">{% verbatim %}{{ text }}{% endverbatim %}</div>
+        <div class="user">{% verbatim %}{{ userName }}{% endverbatim %}</div>
+      </div>
+      <div class="edit" v-show="editing">
+        <div>
+          <textarea v-model.lazy.trim="text" placeholder="Text"></textarea>
+        </div>
+        <div>
+          <input v-model.lazy.trim="userName" placeholder="User">
+        </div>
+        <div class="errors" v-for="(errors, field) in errors">{% verbatim %}{{ field }}: <span v-for="error in errors">{{ error.message }}</span>{% endverbatim %}</div>
+      </div>
+    </div>
+  </script>
+
+  <script>
+    const URLS = {
+      saveStory: "/stories/",
+      deleteStory: "/stories/:id/",
+      saveCard: "/cards/",
+      deleteCard: "/cards/:id/",
+      moveCard: "/cards/:id/story/:story/move/:status/",
+    }
+    $(function () {
       function csrfSafeMethod(method) {
         // these HTTP methods do not require CSRF protection
         return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
@@ -188,222 +243,201 @@
         }
       });
 
-      $("#add-story").click(function (e) {
-        var source_row = $("#source-row");
-        $("#source-row").clone(true).removeAttr("id").insertBefore(source_row).removeClass("hidden");
-        e.preventDefault();
+      var stories = JSON.parse($("#stories-data").text());
+      $.each(stories, function (_, story) {
+        story.editing = false;
+        story.errors = {};
       });
 
-      function edit_story(e) {
-        $(".toggle", $(this).parent().parent()).toggleClass("hidden");
-      }
-      $("[name=edit-story]").click(edit_story);
-
-      $("[name=cancel-story]").click(function (e) {
-        var story = $(this).parent().parent().parent();
-        if (story.data("story-id") === undefined) {
-          story.remove()
-        } else {
-          $(".toggle", $(this).parent().parent()).toggleClass("hidden");
-        }
-      });
-
-      $("[name=save-story]").click(function (e) {
-        var that = $(this);
-        var td = that.parent().parent();
-        var tr = td.parent();
-        var is_new = tr.data("story-id") === undefined;
-        $.ajax({
-          type: "POST",
-          url: urls.save_story,
-          data: {
-            id: tr.data("story-id"),
-            title: $("[name=title]", td).val(),
-            link: $("[name=link]", td).val(),
+      Vue.component('card', {
+        props: ["card", "status", "storyId"],
+        data: function () {
+          return {
+            id: this.card && this.card.id || null,
+            text: this.card && this.card.text || "",
+            userName: this.card && this.card.user.name || "",
+            color: this.card && this.card.user.color || "ffffff",
+            oldText: "",
+            oldUserName: "",
+            editing: !(this.card && this.card.id),
+            errors: {},
+          }
+        },
+        template: '#card-template',
+        methods: {
+          startEdit: function () {
+            this.editing = true
+            this.oldText = this.text;
+            this.oldUserName = this.userName;
           },
-        }).done(
-          function (data) {
-            tr.attr("data-story-id", data.id);
-            $(".errors", td).empty();
-            $(".display .title", td).text(data.title);
-            $(".display .link", td).empty();
-            if (data.link !== "") {
-              $(".display .link", td).append($("<a>Link</a>").attr("href", data.link));
-            }
-            $(".toggle", td).toggleClass("hidden");
-            if (is_new) {
-              $(".actions", td).append($('<a name="delete-story" class="button-link">🗑️</a>').click(delete_story))
-                .append(" ")
-                .append($('<a name="add-card" class="button-link">🏷️</a>').click(add_card));
-            }
-          }
-        ).fail(
-          function (xhr) {
-            data = xhr.responseJSON;
-            console.log(data);
-            var errors = $(".errors", td);
-            errors.empty();
-            $.each(data, function (f, v) {
-              var row = `${f}:`;
-              $.each(v, function (i, t) { var m = t.message; row = `${row} ${m}` });
-              errors.append(row);
-              errors.append($("<br>"));
-            })
-          }
-        );
-        e.preventDefault();
-      });
-
-      function delete_story(e) {
-        var td = $(this).parent().parent();
-        var tr = td.parent();
-        var id = tr.data("story-id");
-        var text = $(".display .title", td).text().trim();
-        if (window.confirm(`Do you really want to delete the story "${text}"`)) {
-          $.ajax({
-            type: "POST",
-            url: urls.delete_story.replace(/:id/, tr.data("story-id")),
-          }).done(
-            function (data) {
-              tr.remove();
-            }
-          ).fail(
-            function (xhr) {
-              console.log(xhr.responseText);
-            }
-          );
-        }
-        e.preventDefault();
-      }
-      $("[name=delete-story]").click(delete_story);
-
-
-      function add_card(e) {
-        var card = $("#source-card").clone();
-        $("[name=edit-card]", card).click(edit_card);
-        $("[name=save-card]", card).click(save_card);
-        $("[name=cancel-card]", card).click(cancel_card);
-        $("[name=delete-card]", card).click(delete_card);
-        $(".toggle", card).toggleClass("hidden");
-        card.removeAttr("id")
-          .appendTo($(this).parent().parent().next())
-          .draggable(draggable_options)
-          .removeClass("hidden");
-        e.preventDefault();
-      };
-      $("[name=add-card]").click(add_card);
-
-      function edit_card(e) {
-        $(".toggle", $(this).parent().parent()).toggleClass("hidden");
-        e.preventDefault();
-      }
-      $("table [name=edit-card]").click(edit_card);
-
-      function save_card(e) {
-        var card = $(this).parent().parent();
-        var column = card.parent();
-        var story = column.parent();
-        var is_new = card.data("card-id") === undefined;
-        var data = {
-          id: card.data("card-id"),
-          story: story.data("story-id"),
-          text: $("[name=text]", card).val().trim(),
-          status: column.data("status")
-        }
-        var user = $("[name=user]", card).val().trim();
-        if (user !== "") {
-          data.user = user;
-        }
-        $.ajax({
-          type: "POST",
-          url: urls.save_card,
-          data: data,
-        }).done(
-          function (data) {
-            card.attr("data-card-id", data.id);
-            $(".errors", card).empty();
-            $(".display .text", card).text(data.text);
-            if (data.user !== null) {
-              $(".display .user", card).text(data.user.name);
-              card.css("background-color", `#${data.user.color}`);
-              $(".display .link", card).append($("<a>Link</a>").attr("href", data.link));
+          abortEdit: function (event) {
+            if (this.id === null) {
+              // destroy the Vue listeners, etc.
+              this.$destroy();
+              // remove the element from the DOM
+              this.$el.parentNode.removeChild(this.$el);
             } else {
-              $(".display .user", card).empty();
-              card.css("background-color", "");
+              this.text = this.oldText;
+              this.userName = this.oldUserName;
+              this.editing = false;
             }
-            $(".toggle", card).toggleClass("hidden");
-            if (is_new) {
-              $(".actions", card).append($('<a name="delete-card" class="button-link">🗑️</a>').click(delete_card))
-            }
-          }
-        ).fail(
-          function (xhr) {
-            data = xhr.responseJSON;
-            console.log(data);
-            var errors = $(".errors", card);
-            errors.empty();
-            $.each(data, function (f, v) {
-              var row = `${f}:`;
-              $.each(v, function (i, t) { var m = t.message; row = `${row} ${m}` });
-              errors.append(row);
-              errors.append($("<br>"));
-            })
-          }
-        );
-        e.preventDefault();
-      }
-      $("table [name=save-card]").click(save_card);
-
-      function cancel_card(e) {
-        $(".toggle", $(this).parent().parent()).toggleClass("hidden");
-        e.preventDefault();
-      }
-      $("table [name=cancel-card]").click(cancel_card);
-
-      function delete_card(e) {
-        var card = $(this).parent().parent();
-        var id = card.data("card-id");
-        var text = $(".display .text", card).text().trim();
-        if (window.confirm(`Do you really want to delete the card "${text}"`)) {
-          $.ajax({
-            type: "POST",
-            url: urls.delete_card.replace(/:id/, id),
-          }).done(
-            function (data) {
-              card.remove();
-            }
-          ).fail(
-            function (xhr) {
-              console.log(xhr.responseText);
-            }
-          );
+          },
+          save: function () {
+            var that = this;
+            $.ajax({
+              type: "POST",
+              url: "/cards/",
+              data: {
+                id: this.id,
+                story: this.storyId,
+                text: this.text,
+                status: this.status,
+                user: this.userName,
+              },
+            }).done(
+              function (data) {
+                that.id = data.id;
+                that.text = data.text;
+                that.userName = data.user.name;
+                that.color = data.user.color || "ffffff";
+                that.editing = false;
+                that.errors = {};
+              }
+            ).fail(
+              function (xhr) {
+                console.log(xhr.responseJSON);
+                story.errors = xhr.responseJSON;
+              }
+            );
+          },
+          remove: function () {
+            var that = this;
+            $.ajax({
+              type: "POST",
+              url: "/cards/:id/".replace(/:id/, this.id),
+            }).done(
+              function (data) {
+                // destroy the Vue listeners, etc.
+                that.$destroy();
+                // remove the element from the DOM
+                that.$el.parentNode.removeChild(that.$el);
+              }
+            ).fail(
+              function (xhr) {
+                console.log(xhr.responseText);
+              }
+            );
+          },
         }
-        e.preventDefault();
-      }
-      $("table [name=delete-card]").click(delete_card);
-
-      $(".card").draggable(draggable_options);
-
-      $(".droppable").droppable({
-        drop: function (event, ui) {
-          var that = $(this);
-          var id = ui.draggable.data("card-id");
-          var story_id = $(this).parent().data("story-id");
-          var status = $(this).data("status");
-          $.ajax({
-            type: "POST",
-            url: urls.move_card.replace(/:id/, id).replace(/:story/, story_id).replace(/:status/, status),
-          }).done(
-            function (data) {
-              ui.draggable.appendTo(that);
+      })
+      var app = new Vue({
+        el: '#app',
+        data: {
+          stories: stories,
+        },
+        methods: {
+          toggleStoryForm: function (story, index) {
+            if (story.editing && story.id === null) {
+              this.stories.splice(index, 1)
+            } else {
+              if (story.editing && story.oldTitle !== undefined && story.oldLink !== undefined) {
+                story.title = story.oldTitle;
+                story.link = story.oldLink;
+              } else {
+                story.oldTitle = story.title;
+                story.oldLink = story.link;
+              }
+              story.editing = !story.editing;
             }
-          ).fail(
-            function (xhr) {
-              console.log(xhr.responseText);
+          },
+          addStory: function () {
+            app.stories.push({
+              id: null,
+              title: "",
+              link: "",
+              cardsTodo: [],
+              cardsInProgress: [],
+              cardsVerify: [],
+              cardsDone: [],
+              editing: true,
+            });
+          },
+          saveStory: function (story) {
+            $.ajax({
+              type: "POST",
+              url: URLS.saveStory,
+              data: {
+                id: story.id,
+                title: story.title,
+                link: story.link,
+              },
+            }).done(
+              function (data) {
+                story.id = data.id;
+                story.title = data.title;
+                story.link = data.link;
+                story.editing = false;
+                story.errors = {};
+              }
+            ).fail(
+              function (xhr) {
+                console.log(xhr.responseJSON);
+                story.errors = xhr.responseJSON;
+              }
+            );
+          },
+          deleteStory: function (story, index) {
+            if (window.confirm(`Do you really want to delete the story "${story.title}"`)) {
+              $.ajax({
+                type: "POST",
+                url: URLS.deleteStory.replace(/:id/, story.id),
+              }).done(
+                function (data) {
+                  this.stories.splice(index, 1)
+                }
+              ).fail(
+                function (xhr) {
+                  console.log(xhr.responseText);
+                }
+              );
             }
-          );
+          },
+          addCard: function (story) {
+            story.cardsTodo.push({ id: null, text: "", user: { name: "", color: "" } })
+          },
         }
-      });
+      })
+    });
+    $(function () {
+      var draggable_options = {
+        handle: ".actions",
+        revert: true,
+        revertDuration: 0,
+        zIndex: 9999,
+      };
+
+      // $(".card").draggable(draggable_options);
+
+      // $(".droppable").droppable({
+      //   drop: function (event, ui) {
+      //     var that = $(this);
+      //     var id = ui.draggable.data("card-id");
+      //     var story_id = $(this).parent().data("story-id");
+      //     var status = $(this).data("status");
+      //     $.ajax({
+      //       type: "POST",
+      //       url: urls.move_card.replace(/:id/, id).replace(/:story/, story_id).replace(/:status/, status),
+      //     }).done(
+      //       function (data) {
+      //         ui.draggable.appendTo(that);
+      //       }
+      //     ).fail(
+      //       function (xhr) {
+      //         console.log(xhr.responseText);
+      //       }
+      //     );
+      //   }
+      // });
     });
   </script>
 
