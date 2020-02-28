@@ -14,6 +14,7 @@ def serialize_cards(cards):
         {
             "id": str(card.pk),
             "text": card.text,
+            "status": card.status,
             "user": (
                 {"name": card.user.name, "color": card.user.color}
                 if card.user
@@ -28,38 +29,15 @@ def serialize_cards(cards):
 def index(request):
     cards_qs = Card.objects.select_related("user")
     stories = Story.objects.filter(done=False).prefetch_related(
-        Prefetch(
-            "cards",
-            queryset=cards_qs.filter(status=Card.Status.TODO),
-            to_attr="cards_todo",
-        ),
-        Prefetch(
-            "cards",
-            queryset=cards_qs.filter(status=Card.Status.IN_PROGRESS),
-            to_attr="cards_in_progress",
-        ),
-        Prefetch(
-            "cards",
-            queryset=cards_qs.filter(status=Card.Status.VERIFY),
-            to_attr="cards_verify",
-        ),
-        Prefetch(
-            "cards",
-            queryset=cards_qs.filter(status=Card.Status.DONE),
-            to_attr="cards_done",
-        ),
+        Prefetch("cards", queryset=cards_qs),
     )
-    # context = {"stories": stories, "urls": {"save_story": reverse("save_story")}}
     context = {
         "stories": [
             {
                 "id": str(story.pk),
                 "title": story.title,
                 "link": story.link,
-                "cardsTodo": serialize_cards(story.cards_todo),
-                "cardsInProgress": serialize_cards(story.cards_in_progress),
-                "cardsVerify": serialize_cards(story.cards_verify),
-                "cardsDone": serialize_cards(story.cards_done),
+                "cards": serialize_cards(story.cards.all()),
             }
             for story in stories
         ]
