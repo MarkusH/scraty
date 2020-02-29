@@ -9,20 +9,15 @@ from .forms import CardForm, StoryForm
 from .models import Card, Story, User
 
 
-def serialize_cards(cards):
-    return [
-        {
-            "id": str(card.pk),
-            "text": card.text,
-            "status": card.status,
-            "user": (
-                {"name": card.user.name, "color": card.user.color}
-                if card.user
-                else None
-            ),
-        }
-        for card in cards
-    ]
+def serialize_card(card):
+    return {
+        "id": str(card.pk),
+        "text": card.text,
+        "status": card.status,
+        "user": (
+            {"name": card.user.name, "color": card.user.color} if card.user else None
+        ),
+    }
 
 
 @ensure_csrf_cookie
@@ -37,7 +32,7 @@ def index(request):
                 "id": str(story.pk),
                 "title": story.title,
                 "link": story.link,
-                "cards": serialize_cards(story.cards.all()),
+                "cards": [serialize_card(card) for card in story.cards.all()],
             }
             for story in stories
         ]
@@ -89,17 +84,7 @@ def save_card(request):
         card.user = user
         card.save()
 
-        return JsonResponse(
-            {
-                "id": str(card.pk),
-                "text": card.text,
-                "user": (
-                    {"name": card.user.name, "color": card.user.color}
-                    if card.user
-                    else None
-                ),
-            }
-        )
+        return JsonResponse(serialize_card(card))
     return JsonResponse(form.errors.get_json_data(), status=400)
 
 
@@ -116,7 +101,7 @@ def move_card(request, id, story, status):
         card.story_id = story
         card.status = status
         card.save()
-        return JsonResponse({}, status=200)
+        return JsonResponse(serialize_card(card), status=200)
     else:
         return JsonResponse({"errors": "unknown status"}, status=400)
 

@@ -81,16 +81,15 @@
         <td>Verify</td>
         <td>Done</td>
       </tr>
-      <tr is="story" v-for="story in stories" :key="story.id + '-' + story.cards.length" :story="story" v-on:move-card="moveCard"></tr>
+      <tr is="story" v-for="story in stories" :key="story.id + '-' + story.cards.length" :story="story" v-on:delete-story="deleteStory" v-on:move-card="moveCard"></tr>
+      <tr is="story" v-if="newStoryForm" v-on:add-story="addStory"></tr>
       <tr>
-        <td colspan="5"><a v-on:click="addStory()">Add a story</a></td>
+        <td colspan="5"><a v-on:click="newStory">Add a story</a></td>
       </tr>
     </table>
   </div>
 
   <a href="{% url 'users' %}">Manage Users</a>
-
-  {# % include "story/_card.html" with is_source=True % #}
 
   {% if True %}
   <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
@@ -118,20 +117,21 @@
           <a v-on:click="abortEdit" class="button-link" v-show="editing">❌</a>
           <a v-on:click="startEdit" class="button-link" v-show="!editing">✏️</a>
           <a v-on:click="remove" class="button-link" v-show="id">🗑️</a>
-          <a v-on:click="addCard" class="button-link" v-show="id">🏷️</a>
+          <a v-on:click="newCard" class="button-link" v-show="id">🏷️</a>
         </div>
       </td>
       <td v-on:drop.prevent="handleDrop($event, 'TODO')" v-on:dragover.prevent>
-        <card v-for="(card, idx) in cardsTodo" :key="idx" :card="card" :story-id="id"></card>
+        <card v-for="(card, idx) in cardsTodo" :key="idx" :card="card" :story-id="id" v-on:delete-card="deleteCard"></card>
+        <card v-if="newCardForm" :story-id="id" v-on:add-card="addCard"></card>
       </td>
       <td v-on:drop.prevent="handleDrop($event, 'IN_PROGRESS')" v-on:dragover.prevent>
-        <card v-for="(card, idx) in cardsInProgress" :key="idx" :card="card" :story-id="id"></card>
+        <card v-for="(card, idx) in cardsInProgress" :key="idx" :card="card" :story-id="id" v-on:delete-card="deleteCard"></card>
       </td>
       <td v-on:drop.prevent="handleDrop($event, 'VERIFY')" v-on:dragover.prevent>
-        <card v-for="(card, idx) in cardsVerify" :key="idx" :card="card" :story-id="id"></card>
+        <card v-for="(card, idx) in cardsVerify" :key="idx" :card="card" :story-id="id" v-on:delete-card="deleteCard"></card>
       </td>
       <td v-on:drop.prevent="handleDrop($event, 'DONE')" v-on:dragover.prevent>
-        <card v-for="(card, idx) in cardsDone" :key="idx" :card="card" :story-id="id"></card>
+        <card v-for="(card, idx) in cardsDone" :key="idx" :card="card" :story-id="id" v-on:delete-card="deleteCard"></card>
       </td>
     </tr>
   </script>
@@ -189,6 +189,7 @@
             oldLink: "",
             editing: !(this.story && this.story.id),
             errors: {},
+            newCardForm: false,
           }
         },
         computed: {
@@ -236,11 +237,15 @@
               },
             }).done(
               function (data) {
-                that.id = data.id;
-                that.title = data.title;
-                that.link = data.link;
-                that.editing = false;
-                that.errors = {};
+                if (that.id === null) {
+                  that.$emit("add-story", { id: data.id, title: data.title, link: data.link, cards: [] });
+                } else {
+                  that.id = data.id;
+                  that.title = data.title;
+                  that.link = data.link;
+                  that.editing = false;
+                  that.errors = {};
+                }
               }
             ).fail(
               function (xhr) {
@@ -257,10 +262,7 @@
                 url: "/stories/:id/".replace(/:id/, this.id),
               }).done(
                 function (data) {
-                  // destroy the Vue listeners, etc.
-                  that.$destroy();
-                  // remove the element from the DOM
-                  that.$el.parentNode.removeChild(that.$el);
+                  that.$emit("delete-story", that.id);
                 }
               ).fail(
                 function (xhr) {
@@ -269,8 +271,15 @@
               );
             }
           },
-          addCard: function () {
-            this.cards.push({ id: null, text: "", status: "TODO", user: { name: "", color: "" } })
+          newCard: function () {
+            this.newCardForm = true;
+          },
+          addCard: function (card) {
+            this.newCardForm = false;
+            this.cards.push(card);
+          },
+          deleteCard: function(cardId){
+            this.cards = this.cards.filter(card => card.id !== cardId);
           },
           handleDrop: function (event, newStatus) {
             ({ cardId, storyId } = JSON.parse(event.dataTransfer.getData("data")));
@@ -327,12 +336,16 @@
               },
             }).done(
               function (data) {
-                that.id = data.id;
-                that.text = data.text;
-                that.userName = data.user && data.user.name || "";
-                that.color = data.user && data.user.color || "ffffff";
-                that.editing = false;
-                that.errors = {};
+                if (that.id === null) {
+                  that.$emit("add-card", { id: data.id, text: data.text, status: data.status, user: data.user });
+                } else {
+                  that.id = data.id;
+                  that.text = data.text;
+                  that.userName = data.user && data.user.name || "";
+                  that.color = data.user && data.user.color || "ffffff";
+                  that.editing = false;
+                  that.errors = {};
+                }
               }
             ).fail(
               function (xhr) {
@@ -348,10 +361,7 @@
               url: "/cards/:id/".replace(/:id/, this.id),
             }).done(
               function (data) {
-                // destroy the Vue listeners, etc.
-                that.$destroy();
-                // remove the element from the DOM
-                that.$el.parentNode.removeChild(that.$el);
+                that.$emit("delete-card", that.id);
               }
             ).fail(
               function (xhr) {
@@ -369,16 +379,18 @@
         el: '#app',
         data: {
           stories: stories,
+          newStoryForm: false,
         },
         methods: {
-          addStory: function () {
-            app.stories.push({
-              id: null,
-              title: "",
-              link: "",
-              cards: [],
-              editing: true,
-            });
+          newStory: function () {
+            this.newStoryForm = true;
+          },
+          addStory: function (story) {
+            this.newStoryForm = false;
+            this.stories.push(story);
+          },
+          deleteStory: function(storyId){
+            this.stories = this.stories.filter(story => story.id !== storyId);
           },
           moveCard: function (cardId, sourceStoryId, targetStoryId, newStatus) {
             var stories = this.stories;
