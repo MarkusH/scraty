@@ -10,8 +10,26 @@
 <body>
   <form method="POST">
     {% csrf_token %}
+    {{ formset.management_form }}
     <table>
-      {{ formset.as_table }}
+      <tr>
+        <td>Name</td>
+        <td>Color</td>
+        <td>Delete</td>
+      </tr>
+      {% for form in formset %}
+      <tr>
+        <td>
+          {{ form.name }}
+        </td>
+        <td>
+          {{ form.color }}
+        </td>
+        <td>
+          {{ form.DELETE }}
+        </td>
+      </tr>
+      {% endfor %}
     </table>
     <input type="submit" value="Save">
   </form>

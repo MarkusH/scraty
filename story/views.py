@@ -129,7 +129,7 @@ def users(request):
         formset = FormSet(request.POST)
         if formset.is_valid():
             formset.save()
-            return redirect("users")
+            return redirect("index")
     else:
         formset = FormSet(queryset=User.objects.all())
     return render(request, "story/users.html", context={"formset": formset})

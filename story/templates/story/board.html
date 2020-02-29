@@ -77,11 +77,11 @@
       <tr>
         <td class="stories"></td>
         <td>Todo</td>
-        <td>In Progrss</td>
+        <td>In Progress</td>
         <td>Verify</td>
         <td>Done</td>
       </tr>
-      <tr is="story" v-for="story in stories" :key="story.id" :story="story"></tr>
+      <tr is="story" v-for="story in stories" :key="story.id + '-' + story.cards.length" :story="story" v-on:move-card="moveCard"></tr>
       <tr>
         <td colspan="5"><a v-on:click="addStory()">Add a story</a></td>
       </tr>
@@ -118,26 +118,26 @@
           <a v-on:click="abortEdit" class="button-link" v-show="editing">❌</a>
           <a v-on:click="startEdit" class="button-link" v-show="!editing">✏️</a>
           <a v-on:click="remove" class="button-link" v-show="id">🗑️</a>
-          <a v-on:click="addCard(story)" class="button-link" v-show="id">🏷️</a>
+          <a v-on:click="addCard" class="button-link" v-show="id">🏷️</a>
         </div>
       </td>
-      <td v-on:drop.prevent="handleDrop" v-on:dragover.prevent>
-        <card v-for="card in cardsTodo" :key="card.id" :card="card" :story-id="id"></card>
+      <td v-on:drop.prevent="handleDrop($event, 'TODO')" v-on:dragover.prevent>
+        <card v-for="(card, idx) in cardsTodo" :key="idx" :card="card" :story-id="id"></card>
       </td>
-      <td v-on:drop.prevent="handleDrop" v-on:dragover.prevent>
-        <card v-for="card in cardsInProgress" :key="card.id" :card="card" :story-id="id"></card>
+      <td v-on:drop.prevent="handleDrop($event, 'IN_PROGRESS')" v-on:dragover.prevent>
+        <card v-for="(card, idx) in cardsInProgress" :key="idx" :card="card" :story-id="id"></card>
       </td>
-      <td v-on:drop.prevent="handleDrop" v-on:dragover.prevent>
-        <card v-for="card in cardsVerify" :key="card.id" :card="card" :story-id="id"></card>
+      <td v-on:drop.prevent="handleDrop($event, 'VERIFY')" v-on:dragover.prevent>
+        <card v-for="(card, idx) in cardsVerify" :key="idx" :card="card" :story-id="id"></card>
       </td>
-      <td v-on:drop.prevent="handleDrop" v-on:dragover.prevent>
-        <card v-for="card in cardsDone" :key="card.id" :card="card" :story-id="id"></card>
+      <td v-on:drop.prevent="handleDrop($event, 'DONE')" v-on:dragover.prevent>
+        <card v-for="(card, idx) in cardsDone" :key="idx" :card="card" :story-id="id"></card>
       </td>
     </tr>
   </script>
 
   <script type="text/x-template" id="card-template">
-    <div class="card" :style="{ backgroundColor: '#' + color }" draggable v-on:dragstart="dragStart">
+    <div class="card" :style="{ backgroundColor: '#' + color }" :draggable="id!==null" v-on:dragstart="dragStart">
       <div class="actions">
         <a v-on:click="save" class="button-link" v-show="editing">✔️</a>
         <a v-on:click="abortEdit" class="button-link" v-show="editing">❌</a>
@@ -161,9 +161,6 @@
   </script>
 
   <script>
-    const URLS = {
-      moveCard: "/cards/:id/story/:story/move/:status/",
-    }
     $(function () {
       function csrfSafeMethod(method) {
         // these HTTP methods do not require CSRF protection
@@ -182,7 +179,7 @@
 
       Vue.component('story', {
         props: ["story"],
-        data: function() {
+        data: function () {
           return {
             id: this.story && this.story.id || null,
             title: this.story && this.story.title || "",
@@ -275,10 +272,10 @@
           addCard: function () {
             this.cards.push({ id: null, text: "", status: "TODO", user: { name: "", color: "" } })
           },
-          handleDrop: function(event) {
-            console.log(event.dataTransfer.getData("cardId"))
-            console.log(event.dataTransfer.getData("storyId"))
-          }
+          handleDrop: function (event, newStatus) {
+            ({ cardId, storyId } = JSON.parse(event.dataTransfer.getData("data")));
+            this.$emit("move-card", cardId, storyId, this.id, newStatus);
+          },
         }
       });
 
@@ -362,10 +359,9 @@
               }
             );
           },
-          dragStart: function(event) {
-            event.dataTransfer.setData("cardId", this.id);
-            event.dataTransfer.setData("storyId", this.storyId);
-          }
+          dragStart: function (event) {
+            event.dataTransfer.setData("data", JSON.stringify({ cardId: this.id, storyId: this.storyId }));
+          },
         }
       });
 
@@ -380,46 +376,34 @@
               id: null,
               title: "",
               link: "",
-              cardsTodo: [],
-              cardsInProgress: [],
-              cardsVerify: [],
-              cardsDone: [],
+              cards: [],
               editing: true,
             });
           },
+          moveCard: function (cardId, sourceStoryId, targetStoryId, newStatus) {
+            var stories = this.stories;
+            $.ajax({
+              type: "POST",
+              url: "/cards/:id/story/:story/move/:status/".replace(/:id/, cardId).replace(/:story/, targetStoryId).replace(/:status/, newStatus),
+            }).done(
+              function (data) {
+                var sourceStory = stories.find(story => story.id === sourceStoryId);
+                var card = sourceStory.cards.find(card => card.id === cardId);
+                if (sourceStoryId !== targetStoryId) {
+                  var targetStory = stories.find(story => story.id === targetStoryId);
+                  sourceStory.cards = sourceStory.cards.filter(card => card.id !== cardId);
+                  targetStory.cards.push(card);
+                }
+                card.status = newStatus;
+              }
+            ).fail(
+              function (xhr) {
+                console.log(xhr.responseText);
+              }
+            );
+          }
         }
       })
-    });
-    $(function () {
-      var draggable_options = {
-        handle: ".actions",
-        revert: true,
-        revertDuration: 0,
-        zIndex: 9999,
-      };
-
-      // $(".card").draggable(draggable_options);
-
-      // $(".droppable").droppable({
-      //   drop: function (event, ui) {
-      //     var that = $(this);
-      //     var id = ui.draggable.data("card-id");
-      //     var story_id = $(this).parent().data("story-id");
-      //     var status = $(this).data("status");
-      //     $.ajax({
-      //       type: "POST",
-      //       url: urls.move_card.replace(/:id/, id).replace(/:story/, story_id).replace(/:status/, status),
-      //     }).done(
-      //       function (data) {
-      //         ui.draggable.appendTo(that);
-      //       }
-      //     ).fail(
-      //       function (xhr) {
-      //         console.log(xhr.responseText);
-      //       }
-      //     );
-      //   }
-      // });
     });
   </script>
 
