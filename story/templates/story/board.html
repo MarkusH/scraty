@@ -278,7 +278,7 @@
             this.newCardForm = false;
             this.cards.push(card);
           },
-          deleteCard: function(cardId){
+          deleteCard: function (cardId) {
             this.cards = this.cards.filter(card => card.id !== cardId);
           },
           handleDrop: function (event, newStatus) {
@@ -389,7 +389,7 @@
             this.newStoryForm = false;
             this.stories.push(story);
           },
-          deleteStory: function(storyId){
+          deleteStory: function (storyId) {
             this.stories = this.stories.filter(story => story.id !== storyId);
           },
           moveCard: function (cardId, sourceStoryId, targetStoryId, newStatus) {
