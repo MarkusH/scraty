@@ -12,10 +12,9 @@
     </tr>
     <tr is="story" v-for="story in stories" :key="story.id + '-' + story.cards.length" :story="story" v-on:delete-story="deleteStory" v-on:move-card="moveCard"></tr>
     <tr is="story" v-if="newStoryForm" v-on:add-story="addStory" v-on:add-story-abort="addStoryAbort"></tr>
-    <tr>
-      <td colspan="5"><a v-on:click="newStory" class="button primary"><i class="fi-plus"></i> Add a story</a> <a href="{% url 'users' %}" class="button secondary"><i class="fi-torsos-all-female"></i> Manage Users</a></td>
-    </tr>
   </table>
+  <a v-on:click="newStory" class="button primary"><i class="fi-plus"></i> Add a story</a>
+  <a href="{% url 'users' %}" class="button secondary"><i class="fi-torsos-all-female"></i> Manage Users</a>
 </div>
 {% endblock %}
 
