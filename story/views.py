@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db.models import Prefetch
 from django.forms.models import modelformset_factory
 from django.http.response import HttpResponse, JsonResponse
@@ -35,7 +36,8 @@ def index(request):
                 "cards": [serialize_card(card) for card in story.cards.all()],
             }
             for story in stories
-        ]
+        ],
+        "debug": settings.DEBUG,
     }
     return render(request, "story/board.html", context=context)
 

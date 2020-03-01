@@ -4,11 +4,11 @@
 <div id="app">
   <table class="board">
     <tr>
-      <td class="stories"></td>
-      <td>Todo</td>
-      <td>In Progress</td>
-      <td>Verify</td>
-      <td>Done</td>
+      <th class="stories"></th>
+      <th>Todo</th>
+      <th>In Progress</th>
+      <th>Verify</th>
+      <th>Done</th>
     </tr>
     <tr is="story" v-for="story in stories" :key="story.id + '-' + story.cards.length" :story="story" v-on:delete-story="deleteStory" v-on:move-card="moveCard"></tr>
     <tr is="story" v-if="newStoryForm" v-on:add-story="addStory" v-on:add-story-abort="addStoryAbort"></tr>
@@ -19,7 +19,7 @@
 {% endblock %}
 
 {% block extrajs %}
-{% if True %}
+{% if debug %}
 <script src="https://cdn.jsdelivr.net/npm/vue@2.6.11/dist/vue.js" integrity="sha256-NSuqgY2hCZJUN6hDMFfdxvkexI7+iLxXQbL540RQ/c4=" crossorigin="anonymous"></script>
 {% else %}
 <script src="https://cdn.jsdelivr.net/npm/vue@2.6.11/dist/vue.min.js" integrity="sha256-ngFW3UnAN0Tnm76mDuu7uUtYEcG3G5H1+zioJw3t+68=" crossorigin="anonymous"></script>
