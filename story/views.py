@@ -1,7 +1,7 @@
 from django.db.models import Prefetch
 from django.forms.models import modelformset_factory
 from django.http.response import HttpResponse, JsonResponse
-from django.shortcuts import redirect, render, reverse
+from django.shortcuts import redirect, render
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_POST
 
@@ -108,7 +108,7 @@ def move_card(request, id, story, status):
 
 def users(request):
     FormSet = modelformset_factory(
-        User, extra=5, can_delete=True, fields=("name", "color")
+        User, extra=0, can_delete=True, fields=("name", "color")
     )
     if request.method == "POST":
         formset = FormSet(request.POST)
