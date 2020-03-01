@@ -1,40 +1,29 @@
-<!doctype html>
-<html lang="en">
+{% extends "story/base.html" %}
 
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Scraty</title>
-</head>
-
-<body>
-  <form method="POST">
-    {% csrf_token %}
-    {{ formset.management_form }}
-    <table>
-      <tr>
-        <td>Name</td>
-        <td>Color</td>
-        <td>Delete</td>
-      </tr>
-      {% for form in formset %}
-      <tr>
-        <td>
-          {{ form.name }}
-        </td>
-        <td>
-          {{ form.color }}
-        </td>
-        <td>
-          {{ form.DELETE }}
-        </td>
-      </tr>
-      {% endfor %}
-    </table>
-    <input type="submit" value="Save">
-  </form>
-
-  <a href="{% url 'index' %}">Back to the board</a>
-</body>
-
-</html>
+{% block content %}
+<form method="POST">
+  {% csrf_token %}
+  {{ formset.management_form }}
+  <table class="users">
+    <tr>
+      <td>Name</td>
+      <td>Color</td>
+      <td>Delete</td>
+    </tr>
+    {% for form in formset %}
+    <tr>
+      <td>
+        {{ form.name }}
+      </td>
+      <td>
+        {{ form.color }}
+      </td>
+      <td>
+        {{ form.DELETE }}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  <button type="submit" class="button"><i class="fi-save"></i> Save</button> <a href="{% url 'index' %}" class="button secondary"><i class="fi-thumbnails"></i> Back to the board</a>
+</form>
+{% endblock %}

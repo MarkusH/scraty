@@ -1,107 +1,35 @@
-<!doctype html>
-<html lang="en">
+{% extends "story/base.html" %}
 
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Scraty</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/foundation-sites@6.4.3/dist/css/foundation.min.css" integrity="sha256-GSio8qamaXapM8Fq9JYdGNTvk/dgs+cMLgPeevOYEx0= sha384-wAweiGTn38CY2DSwAaEffed6iMeflc0FMiuptanbN4J+ib+342gKGpvYRWubPd/+ sha512-QHEb6jOC8SaGTmYmGU19u2FhIfeG+t/hSacIWPpDzOp5yygnthL3JwnilM7LM1dOAbJv62R+/FICfsrKUqv4Gg==" crossorigin="anonymous">
-  <style>
-    body {
-      margin: 10px;
-    }
+{% block content %}
+<div id="app">
+  <table class="board">
+    <tr>
+      <td class="stories"></td>
+      <td>Todo</td>
+      <td>In Progress</td>
+      <td>Verify</td>
+      <td>Done</td>
+    </tr>
+    <tr is="story" v-for="story in stories" :key="story.id + '-' + story.cards.length" :story="story" v-on:delete-story="deleteStory" v-on:move-card="moveCard"></tr>
+    <tr is="story" v-if="newStoryForm" v-on:add-story="addStory" v-on:add-story-abort="addStoryAbort"></tr>
+    <tr>
+      <td colspan="5"><a v-on:click="newStory" class="button primary"><i class="fi-plus"></i> Add a story</a> <a href="{% url 'users' %}" class="button secondary"><i class="fi-torsos-all-female"></i> Manage Users</a></td>
+    </tr>
+  </table>
+</div>
+{% endblock %}
 
-    table {
-      border-collapse: collapse;
-      border-spacing: 0;
-      width: 100%;
-    }
+{% block extrajs %}
+{% if True %}
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.11/dist/vue.js" integrity="sha256-NSuqgY2hCZJUN6hDMFfdxvkexI7+iLxXQbL540RQ/c4=" crossorigin="anonymous"></script>
+{% else %}
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.11/dist/vue.min.js" integrity="sha256-ngFW3UnAN0Tnm76mDuu7uUtYEcG3G5H1+zioJw3t+68=" crossorigin="anonymous"></script>
+{% endif %}
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2.2.1/src/js.cookie.min.js" integrity="sha256-Obj+Y2RiFyX/kEMaNK8Ph5dtlcAMv9HQ83EaPx+hoHs=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+{{ stories | json_script:"stories-data" }}
 
-    td {
-      border: 1px solid;
-      vertical-align: top;
-    }
-
-    .stories {
-      width: 250px;
-    }
-
-    .stories textarea,
-    .stories input {
-      width: 244px;
-      border: 1px solid;
-      padding: 1px;
-      margin: 1px;
-    }
-
-    .button-link {
-      cursor: pointer;
-    }
-
-    .card {
-      width: 100px;
-      min-height: 100px;
-      border: 1px solid;
-      margin: 10px;
-      float: left;
-      font-size: 0.8rem;
-    }
-
-    .card .actions {
-      background-color: #e0e0e0;
-      text-align: right;
-    }
-
-    .card .display {
-      max-width: 94px;
-      padding: 1px;
-      margin: 1px;
-    }
-
-    .card textarea,
-    .card input {
-      width: 94px;
-      border: 1px solid;
-      padding: 1px;
-      margin: 1px;
-    }
-
-    .hidden {
-      display: none;
-    }
-  </style>
-</head>
-
-<body>
-  <div id="app">
-    <table>
-      <tr>
-        <td class="stories"></td>
-        <td>Todo</td>
-        <td>In Progress</td>
-        <td>Verify</td>
-        <td>Done</td>
-      </tr>
-      <tr is="story" v-for="story in stories" :key="story.id + '-' + story.cards.length" :story="story" v-on:delete-story="deleteStory" v-on:move-card="moveCard"></tr>
-      <tr is="story" v-if="newStoryForm" v-on:add-story="addStory" v-on:add-story-abort="addStoryAbort"></tr>
-      <tr>
-        <td colspan="5"><a v-on:click="newStory">Add a story</a></td>
-      </tr>
-    </table>
-  </div>
-
-  <a href="{% url 'users' %}">Manage Users</a>
-
-  {% if True %}
-  <script src="https://cdn.jsdelivr.net/npm/vue@2.6.11/dist/vue.js" integrity="sha256-NSuqgY2hCZJUN6hDMFfdxvkexI7+iLxXQbL540RQ/c4=" crossorigin="anonymous"></script>
-  {% else %}
-  <script src="https://cdn.jsdelivr.net/npm/vue@2.6.11/dist/vue.min.js" integrity="sha256-ngFW3UnAN0Tnm76mDuu7uUtYEcG3G5H1+zioJw3t+68=" crossorigin="anonymous"></script>
-  {% endif %}
-  <script src="https://cdn.jsdelivr.net/npm/js-cookie@2.2.1/src/js.cookie.min.js" integrity="sha256-Obj+Y2RiFyX/kEMaNK8Ph5dtlcAMv9HQ83EaPx+hoHs=" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
-  {{ stories | json_script:"stories-data" }}
-
-  <script type="text/x-template" id="story-template">
+<script type="text/x-template" id="story-template">
     <tr>
       <td class="stories">
         <div class="display" v-show="!editing">
@@ -114,11 +42,11 @@
           <div class="errors" v-for="(errors, field) in errors">{% verbatim %}{{ field[0].toUpperCase() + field.slice(1) }}: <span v-for="error in errors">{{ error.message }}</span>{% endverbatim %}</div>
         </div>
         <div class="actions">
-          <a v-on:click="save" class="button-link" v-show="editing">✔️</a>
-          <a v-on:click="abortEdit" class="button-link" v-show="editing">❌</a>
-          <a v-on:click="startEdit" class="button-link" v-show="!editing">✏️</a>
-          <a v-on:click="remove" class="button-link" v-show="id">🗑️</a>
-          <a v-on:click="newCard" class="button-link" v-show="id">🏷️</a>
+          <a v-on:click="save" class="button-link" v-show="editing"><i class="fi-save"></i></a>
+          <a v-on:click="abortEdit" class="button-link" v-show="editing"><i class="fi-x"></i></a>
+          <a v-on:click="startEdit" class="button-link" v-show="!editing"><i class="fi-page-edit"></i></a>
+          <a v-on:click="remove" class="button-link" v-show="id"><i class="fi-trash"></i></a>
+          <a v-on:click="newCard" class="button-link" v-show="id"><i class="fi-plus"></i></a>
         </div>
       </td>
       <td v-on:drop.prevent="handleDrop($event, 'TODO')" v-on:dragover.prevent>
@@ -137,17 +65,17 @@
     </tr>
   </script>
 
-  <script type="text/x-template" id="card-template">
+<script type="text/x-template" id="card-template">
     <div class="card" :style="{ backgroundColor: '#' + color }" :draggable="id!==null" v-on:dragstart="dragStart">
       <div class="actions">
-        <a v-on:click="save" class="button-link" v-show="editing">✔️</a>
-        <a v-on:click="abortEdit" class="button-link" v-show="editing">❌</a>
-        <a v-on:click="startEdit" class="button-link" v-show="!editing">✏️</a>
-        <a v-on:click="remove" class="button-link" v-show="id">🗑️</a>
+        <a v-on:click="save" class="button-link" v-show="editing"><i class="fi-save"></i></a>
+        <a v-on:click="abortEdit" class="button-link" v-show="editing"><i class="fi-x"></i></a>
+        <a v-on:click="startEdit" class="button-link" v-show="!editing"><i class="fi-page-edit"></i></a>
+        <a v-on:click="remove" class="button-link" v-show="id"><i class="fi-trash"></i></a>
       </div>
       <div class="display" v-show="!editing">
         <div class="text">{% verbatim %}{{ text }}{% endverbatim %}</div>
-        <div class="user">{% verbatim %}{{ userName }}{% endverbatim %}</div>
+        <div class="user">By: {% verbatim %}{{ userName }}{% endverbatim %}</div>
       </div>
       <div class="edit" v-show="editing">
         <div>
@@ -161,265 +89,262 @@
     </div>
   </script>
 
-  <script>
-    $(function () {
-      function csrfSafeMethod(method) {
-        // these HTTP methods do not require CSRF protection
-        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+<script>
+  $(function () {
+    function csrfSafeMethod(method) {
+      // these HTTP methods do not require CSRF protection
+      return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+    }
+
+    $.ajaxSetup({
+      beforeSend: function (xhr, settings) {
+        if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+          xhr.setRequestHeader("X-CSRFToken", Cookies.get("csrftoken"));
+        }
       }
-
-      $.ajaxSetup({
-        beforeSend: function (xhr, settings) {
-          if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
-            xhr.setRequestHeader("X-CSRFToken", Cookies.get("csrftoken"));
-          }
-        }
-      });
-
-      var stories = JSON.parse($("#stories-data").text());
-
-      Vue.component('story', {
-        props: ["story"],
-        data: function () {
-          return {
-            id: this.story && this.story.id || null,
-            title: this.story && this.story.title || "",
-            link: this.story && this.story.link || "",
-            cards: this.story && this.story.cards || [],
-            oldTitle: "",
-            oldLink: "",
-            editing: !(this.story && this.story.id),
-            errors: {},
-            newCardForm: false,
-          }
-        },
-        computed: {
-          cardsTodo: function () {
-            return this.cards.filter(card => card.status === "TODO");
-          },
-          cardsInProgress: function () {
-            return this.cards.filter(card => card.status === "IN_PROGRESS");
-          },
-          cardsVerify: function () {
-            return this.cards.filter(card => card.status === "VERIFY");
-          },
-          cardsDone: function () {
-            return this.cards.filter(card => card.status === "DONE");
-          },
-        },
-        template: "#story-template",
-        methods: {
-          startEdit: function () {
-            this.editing = true
-            this.oldTitle = this.title;
-            this.oldLink = this.link;
-          },
-          abortEdit: function (event) {
-            if (this.id === null) {
-              this.$emit("add-story-abort");
-            } else {
-              this.title = this.oldTitle;
-              this.link = this.oldLink;
-              this.editing = false;
-            }
-          },
-          save: function () {
-            var that = this;
-            $.ajax({
-              type: "POST",
-              url: "/stories/",
-              data: {
-                id: this.id,
-                title: this.title,
-                link: this.link,
-              },
-            }).done(
-              function (data) {
-                if (that.id === null) {
-                  that.$emit("add-story", { id: data.id, title: data.title, link: data.link, cards: [] });
-                } else {
-                  that.id = data.id;
-                  that.title = data.title;
-                  that.link = data.link;
-                  that.editing = false;
-                  that.errors = {};
-                }
-              }
-            ).fail(
-              function (xhr) {
-                console.log(xhr.responseJSON);
-                that.errors = xhr.responseJSON;
-              }
-            );
-          },
-          remove: function () {
-            var that = this;
-            if (window.confirm(`Do you really want to delete the story "${this.title}"`)) {
-              $.ajax({
-                type: "POST",
-                url: "/stories/:id/".replace(/:id/, this.id),
-              }).done(
-                function (data) {
-                  that.$emit("delete-story", that.id);
-                }
-              ).fail(
-                function (xhr) {
-                  console.log(xhr.responseText);
-                }
-              );
-            }
-          },
-          newCard: function () {
-            this.newCardForm = true;
-          },
-          addCard: function (card) {
-            this.newCardForm = false;
-            this.cards.push(card);
-          },
-          addCardAbort: function () {
-            this.newCardForm = false;
-          },
-          deleteCard: function (cardId) {
-            this.cards = this.cards.filter(card => card.id !== cardId);
-          },
-          handleDrop: function (event, newStatus) {
-            ({ cardId, storyId } = JSON.parse(event.dataTransfer.getData("data")));
-            this.$emit("move-card", cardId, storyId, this.id, newStatus);
-          },
-        }
-      });
-
-      Vue.component('card', {
-        props: ["card", "storyId"],
-        data: function () {
-          return {
-            id: this.card && this.card.id || null,
-            text: this.card && this.card.text || "",
-            status: this.card && this.card.status || "TODO",
-            userName: this.card && this.card.user && this.card.user.name || "",
-            color: this.card && this.card.user && this.card.user.color || "ffffff",
-            oldText: "",
-            oldUserName: "",
-            editing: !(this.card && this.card.id),
-            errors: {},
-          }
-        },
-        template: '#card-template',
-        methods: {
-          startEdit: function () {
-            this.editing = true
-            this.oldText = this.text;
-            this.oldUserName = this.userName;
-          },
-          abortEdit: function (event) {
-            if (this.id === null) {
-              this.$emit("add-card-abort");
-            } else {
-              this.text = this.oldText;
-              this.userName = this.oldUserName;
-              this.editing = false;
-            }
-          },
-          save: function () {
-            var that = this;
-            $.ajax({
-              type: "POST",
-              url: "/cards/",
-              data: {
-                id: this.id,
-                story: this.storyId,
-                text: this.text,
-                status: this.status,
-                user: this.userName,
-              },
-            }).done(
-              function (data) {
-                if (that.id === null) {
-                  that.$emit("add-card", { id: data.id, text: data.text, status: data.status, user: data.user });
-                } else {
-                  that.id = data.id;
-                  that.text = data.text;
-                  that.userName = data.user && data.user.name || "";
-                  that.color = data.user && data.user.color || "ffffff";
-                  that.editing = false;
-                  that.errors = {};
-                }
-              }
-            ).fail(
-              function (xhr) {
-                console.log(xhr.responseJSON);
-                that.errors = xhr.responseJSON;
-              }
-            );
-          },
-          remove: function () {
-            var that = this;
-            $.ajax({
-              type: "POST",
-              url: "/cards/:id/".replace(/:id/, this.id),
-            }).done(
-              function (data) {
-                that.$emit("delete-card", that.id);
-              }
-            ).fail(
-              function (xhr) {
-                console.log(xhr.responseText);
-              }
-            );
-          },
-          dragStart: function (event) {
-            event.dataTransfer.setData("data", JSON.stringify({ cardId: this.id, storyId: this.storyId }));
-          },
-        }
-      });
-
-      var app = new Vue({
-        el: '#app',
-        data: {
-          stories: stories,
-          newStoryForm: false,
-        },
-        methods: {
-          newStory: function () {
-            this.newStoryForm = true;
-          },
-          addStory: function (story) {
-            this.newStoryForm = false;
-            this.stories.push(story);
-          },
-          addStoryAbort: function () {
-            this.newStoryForm = false;
-          },
-          deleteStory: function (storyId) {
-            this.stories = this.stories.filter(story => story.id !== storyId);
-          },
-          moveCard: function (cardId, sourceStoryId, targetStoryId, newStatus) {
-            var stories = this.stories;
-            $.ajax({
-              type: "POST",
-              url: "/cards/:id/story/:story/move/:status/".replace(/:id/, cardId).replace(/:story/, targetStoryId).replace(/:status/, newStatus),
-            }).done(
-              function (data) {
-                var sourceStory = stories.find(story => story.id === sourceStoryId);
-                var card = sourceStory.cards.find(card => card.id === cardId);
-                if (sourceStoryId !== targetStoryId) {
-                  var targetStory = stories.find(story => story.id === targetStoryId);
-                  sourceStory.cards = sourceStory.cards.filter(card => card.id !== cardId);
-                  targetStory.cards.push(card);
-                }
-                card.status = newStatus;
-              }
-            ).fail(
-              function (xhr) {
-                console.log(xhr.responseText);
-              }
-            );
-          }
-        }
-      })
     });
-  </script>
 
-</body>
+    var stories = JSON.parse($("#stories-data").text());
 
-</html>
+    Vue.component('story', {
+      props: ["story"],
+      data: function () {
+        return {
+          id: this.story && this.story.id || null,
+          title: this.story && this.story.title || "",
+          link: this.story && this.story.link || "",
+          cards: this.story && this.story.cards || [],
+          oldTitle: "",
+          oldLink: "",
+          editing: !(this.story && this.story.id),
+          errors: {},
+          newCardForm: false,
+        }
+      },
+      computed: {
+        cardsTodo: function () {
+          return this.cards.filter(card => card.status === "TODO");
+        },
+        cardsInProgress: function () {
+          return this.cards.filter(card => card.status === "IN_PROGRESS");
+        },
+        cardsVerify: function () {
+          return this.cards.filter(card => card.status === "VERIFY");
+        },
+        cardsDone: function () {
+          return this.cards.filter(card => card.status === "DONE");
+        },
+      },
+      template: "#story-template",
+      methods: {
+        startEdit: function () {
+          this.editing = true
+          this.oldTitle = this.title;
+          this.oldLink = this.link;
+        },
+        abortEdit: function (event) {
+          if (this.id === null) {
+            this.$emit("add-story-abort");
+          } else {
+            this.title = this.oldTitle;
+            this.link = this.oldLink;
+            this.editing = false;
+          }
+        },
+        save: function () {
+          var that = this;
+          $.ajax({
+            type: "POST",
+            url: "/stories/",
+            data: {
+              id: this.id,
+              title: this.title,
+              link: this.link,
+            },
+          }).done(
+            function (data) {
+              if (that.id === null) {
+                that.$emit("add-story", { id: data.id, title: data.title, link: data.link, cards: [] });
+              } else {
+                that.id = data.id;
+                that.title = data.title;
+                that.link = data.link;
+                that.editing = false;
+                that.errors = {};
+              }
+            }
+          ).fail(
+            function (xhr) {
+              console.log(xhr.responseJSON);
+              that.errors = xhr.responseJSON;
+            }
+          );
+        },
+        remove: function () {
+          var that = this;
+          if (window.confirm(`Do you really want to delete the story "${this.title}"`)) {
+            $.ajax({
+              type: "POST",
+              url: "/stories/:id/".replace(/:id/, this.id),
+            }).done(
+              function (data) {
+                that.$emit("delete-story", that.id);
+              }
+            ).fail(
+              function (xhr) {
+                console.log(xhr.responseText);
+              }
+            );
+          }
+        },
+        newCard: function () {
+          this.newCardForm = true;
+        },
+        addCard: function (card) {
+          this.newCardForm = false;
+          this.cards.push(card);
+        },
+        addCardAbort: function () {
+          this.newCardForm = false;
+        },
+        deleteCard: function (cardId) {
+          this.cards = this.cards.filter(card => card.id !== cardId);
+        },
+        handleDrop: function (event, newStatus) {
+          ({ cardId, storyId } = JSON.parse(event.dataTransfer.getData("data")));
+          this.$emit("move-card", cardId, storyId, this.id, newStatus);
+        },
+      }
+    });
+
+    Vue.component('card', {
+      props: ["card", "storyId"],
+      data: function () {
+        return {
+          id: this.card && this.card.id || null,
+          text: this.card && this.card.text || "",
+          status: this.card && this.card.status || "TODO",
+          userName: this.card && this.card.user && this.card.user.name || "",
+          color: this.card && this.card.user && this.card.user.color || "ffffff",
+          oldText: "",
+          oldUserName: "",
+          editing: !(this.card && this.card.id),
+          errors: {},
+        }
+      },
+      template: '#card-template',
+      methods: {
+        startEdit: function () {
+          this.editing = true
+          this.oldText = this.text;
+          this.oldUserName = this.userName;
+        },
+        abortEdit: function (event) {
+          if (this.id === null) {
+            this.$emit("add-card-abort");
+          } else {
+            this.text = this.oldText;
+            this.userName = this.oldUserName;
+            this.editing = false;
+          }
+        },
+        save: function () {
+          var that = this;
+          $.ajax({
+            type: "POST",
+            url: "/cards/",
+            data: {
+              id: this.id,
+              story: this.storyId,
+              text: this.text,
+              status: this.status,
+              user: this.userName,
+            },
+          }).done(
+            function (data) {
+              if (that.id === null) {
+                that.$emit("add-card", { id: data.id, text: data.text, status: data.status, user: data.user });
+              } else {
+                that.id = data.id;
+                that.text = data.text;
+                that.userName = data.user && data.user.name || "";
+                that.color = data.user && data.user.color || "ffffff";
+                that.editing = false;
+                that.errors = {};
+              }
+            }
+          ).fail(
+            function (xhr) {
+              console.log(xhr.responseJSON);
+              that.errors = xhr.responseJSON;
+            }
+          );
+        },
+        remove: function () {
+          var that = this;
+          $.ajax({
+            type: "POST",
+            url: "/cards/:id/".replace(/:id/, this.id),
+          }).done(
+            function (data) {
+              that.$emit("delete-card", that.id);
+            }
+          ).fail(
+            function (xhr) {
+              console.log(xhr.responseText);
+            }
+          );
+        },
+        dragStart: function (event) {
+          event.dataTransfer.setData("data", JSON.stringify({ cardId: this.id, storyId: this.storyId }));
+        },
+      }
+    });
+
+    var app = new Vue({
+      el: '#app',
+      data: {
+        stories: stories,
+        newStoryForm: false,
+      },
+      methods: {
+        newStory: function () {
+          this.newStoryForm = true;
+        },
+        addStory: function (story) {
+          this.newStoryForm = false;
+          this.stories.push(story);
+        },
+        addStoryAbort: function () {
+          this.newStoryForm = false;
+        },
+        deleteStory: function (storyId) {
+          this.stories = this.stories.filter(story => story.id !== storyId);
+        },
+        moveCard: function (cardId, sourceStoryId, targetStoryId, newStatus) {
+          var stories = this.stories;
+          $.ajax({
+            type: "POST",
+            url: "/cards/:id/story/:story/move/:status/".replace(/:id/, cardId).replace(/:story/, targetStoryId).replace(/:status/, newStatus),
+          }).done(
+            function (data) {
+              var sourceStory = stories.find(story => story.id === sourceStoryId);
+              var card = sourceStory.cards.find(card => card.id === cardId);
+              if (sourceStoryId !== targetStoryId) {
+                var targetStory = stories.find(story => story.id === targetStoryId);
+                sourceStory.cards = sourceStory.cards.filter(card => card.id !== cardId);
+                targetStory.cards.push(card);
+              }
+              card.status = newStatus;
+            }
+          ).fail(
+            function (xhr) {
+              console.log(xhr.responseText);
+            }
+          );
+        }
+      }
+    })
+  });
+</script>
+{% endblock %}

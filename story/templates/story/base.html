@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Scraty</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/foundation-sites@6.4.3/dist/css/foundation.min.css" integrity="sha256-GSio8qamaXapM8Fq9JYdGNTvk/dgs+cMLgPeevOYEx0= sha384-wAweiGTn38CY2DSwAaEffed6iMeflc0FMiuptanbN4J+ib+342gKGpvYRWubPd/+ sha512-QHEb6jOC8SaGTmYmGU19u2FhIfeG+t/hSacIWPpDzOp5yygnthL3JwnilM7LM1dOAbJv62R+/FICfsrKUqv4Gg==" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/foundation-icons@1.0.1/foundation-icons.css" integrity="sha256-CWltC/W+elkkUKhitcztPiSfE3AEpzAvrkmEqB68Lx0=" crossorigin="anonymous">
+
+  <style>
+    body {
+      margin: 10px;
+    }
+
+    table.board {
+      width: 100%;
+    }
+    table.users {
+      width: 50%;
+    }
+
+    td {
+      border: 1px solid;
+      vertical-align: top;
+    }
+
+    .stories {
+      width: 250px;
+    }
+
+    textarea {
+      resize: none;
+    }
+
+    .stories textarea,
+    .stories input {
+      width: 244px;
+      border: 1px solid;
+      padding: 1px;
+      margin: 1px;
+    }
+
+    .button-link {
+      cursor: pointer;
+    }
+
+    .card {
+      width: 100px;
+      min-height: 100px;
+      border: 1px solid;
+      margin: 10px;
+      float: left;
+      font-size: 0.8rem;
+    }
+
+    .card .actions {
+      background-color: #e0e0e0;
+      text-align: right;
+    }
+
+    .card .display {
+      max-width: 94px;
+      padding: 1px;
+      margin: 1px;
+    }
+    .card .user {
+      font-style: italic;
+    }
+
+    .card textarea,
+    .card input {
+      width: 94px;
+      border: 1px solid;
+      padding: 1px;
+      margin: 1px;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  {% block content %}{% endblock %}
+  {% block extrajs %}{% endblock %}
+</body>
+
+</html>
