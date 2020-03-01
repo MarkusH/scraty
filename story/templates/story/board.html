@@ -110,7 +110,7 @@
         <div class="display" v-show="editing">
           <textarea v-model.lazy.trim="title" placeholder="Title"></textarea>
           <input v-model.lazy.trim="link" placeholder="Link">
-          <div class="errors" v-for="(errors, field) in errors">{% verbatim %}{{ field }}: <span v-for="error in errors">{{ error.message }}</span>{% endverbatim %}</div>
+          <div class="errors" v-for="(errors, field) in errors">{% verbatim %}{{ field[0].toUpperCase() + field.slice(1) }}: <span v-for="error in errors">{{ error.message }}</span>{% endverbatim %}</div>
         </div>
         <div class="actions">
           <a v-on:click="save" class="button-link" v-show="editing">✔️</a>
@@ -155,7 +155,7 @@
         <div>
           <input v-model.lazy.trim="userName" placeholder="User">
         </div>
-        <div class="errors" v-for="(errors, field) in errors">{% verbatim %}{{ field }}: <span v-for="error in errors">{{ error.message }}</span>{% endverbatim %}</div>
+        <div class="errors" v-for="(errors, field) in errors">{% verbatim %}{{ field[0].toUpperCase() + field.slice(1) }}: <span v-for="error in errors">{{ error.message }}</span>{% endverbatim %}</div>
       </div>
     </div>
   </script>
