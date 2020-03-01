@@ -82,7 +82,7 @@
         <td>Done</td>
       </tr>
       <tr is="story" v-for="story in stories" :key="story.id + '-' + story.cards.length" :story="story" v-on:delete-story="deleteStory" v-on:move-card="moveCard"></tr>
-      <tr is="story" v-if="newStoryForm" v-on:add-story="addStory"></tr>
+      <tr is="story" v-if="newStoryForm" v-on:add-story="addStory" v-on:add-story-abort="addStoryAbort"></tr>
       <tr>
         <td colspan="5"><a v-on:click="newStory">Add a story</a></td>
       </tr>
@@ -122,7 +122,7 @@
       </td>
       <td v-on:drop.prevent="handleDrop($event, 'TODO')" v-on:dragover.prevent>
         <card v-for="(card, idx) in cardsTodo" :key="idx" :card="card" :story-id="id" v-on:delete-card="deleteCard"></card>
-        <card v-if="newCardForm" :story-id="id" v-on:add-card="addCard"></card>
+        <card v-if="newCardForm" :story-id="id" v-on:add-card="addCard" v-on:add-card-abort="addCardAbort"></card>
       </td>
       <td v-on:drop.prevent="handleDrop($event, 'IN_PROGRESS')" v-on:dragover.prevent>
         <card v-for="(card, idx) in cardsInProgress" :key="idx" :card="card" :story-id="id" v-on:delete-card="deleteCard"></card>
@@ -215,10 +215,7 @@
           },
           abortEdit: function (event) {
             if (this.id === null) {
-              // destroy the Vue listeners, etc.
-              this.$destroy();
-              // remove the element from the DOM
-              this.$el.parentNode.removeChild(this.$el);
+              this.$emit("add-story-abort");
             } else {
               this.title = this.oldTitle;
               this.link = this.oldLink;
@@ -278,6 +275,9 @@
             this.newCardForm = false;
             this.cards.push(card);
           },
+          addCardAbort: function () {
+            this.newCardForm = false;
+          },
           deleteCard: function (cardId) {
             this.cards = this.cards.filter(card => card.id !== cardId);
           },
@@ -312,10 +312,7 @@
           },
           abortEdit: function (event) {
             if (this.id === null) {
-              // destroy the Vue listeners, etc.
-              this.$destroy();
-              // remove the element from the DOM
-              this.$el.parentNode.removeChild(this.$el);
+              this.$emit("add-card-abort");
             } else {
               this.text = this.oldText;
               this.userName = this.oldUserName;
@@ -388,6 +385,9 @@
           addStory: function (story) {
             this.newStoryForm = false;
             this.stories.push(story);
+          },
+          addStoryAbort: function () {
+            this.newStoryForm = false;
           },
           deleteStory: function (storyId) {
             this.stories = this.stories.filter(story => story.id !== storyId);
