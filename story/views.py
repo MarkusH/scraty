@@ -18,7 +18,7 @@ def serialize_card(card):
         "user": (
             {"name": card.user.name, "color": card.user.color}
             if card.user
-            else {"name": "", "color": "ffffff"}
+            else {"name": "", "color": ""}
         ),
     }
 

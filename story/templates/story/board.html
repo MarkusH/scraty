@@ -64,7 +64,7 @@
   </script>
 
 <script type="text/x-template" id="card-template">
-    <div class="card" :style="{ backgroundColor: '#' + user.color }" :draggable="id!==null && !editing" v-on:dragstart="dragStart">
+    <div class="card" :style="{ backgroundColor: '#' + (user.color || 'ffffff') }" :draggable="id!==null && !editing" v-on:dragstart="dragStart">
       <div class="actions">
         <a v-on:click="save" class="button-link" v-if="editing"><i class="fi-save"></i></a>
         <a v-on:click="abortEdit" class="button-link" v-if="editing"><i class="fi-x"></i></a>
@@ -297,7 +297,7 @@
           id: this.card && this.card.id || null,
           text: this.card && this.card.text || "",
           status: this.card && this.card.status || "TODO",
-          user: this.card && this.card.user || { name: "", color: "ffffff" },
+          user: this.card && this.card.user || { name: "", color: "" },
           oldText: "",
           oldUserName: "",
           editing: !(this.card && this.card.id),
@@ -311,7 +311,7 @@
             this.id = this.card && this.card.id || null;
             this.text = this.card && this.card.text || "";
             this.status = this.card && this.card.status || "TODO";
-            this.user = this.card && this.card.user || { name: "", color: "ffffff" };
+            this.user = this.card && this.card.user || { name: "", color: "" };
           }
         },
       },
