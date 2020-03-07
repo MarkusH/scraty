@@ -26,7 +26,6 @@
 {% endif %}
 <script src="https://cdn.jsdelivr.net/npm/js-cookie@2.2.1/src/js.cookie.min.js" integrity="sha256-Obj+Y2RiFyX/kEMaNK8Ph5dtlcAMv9HQ83EaPx+hoHs=" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
-{{ stories | json_script:"stories-data" }}
 
 <script type="text/x-template" id="story-template">
     <tr>
@@ -92,7 +91,7 @@
   $(function () {
     const store = {
       state: {
-        stories: JSON.parse($("#stories-data").text()),
+        stories: [],
       },
       addStory(story) {
         console.log("addStory", story);
@@ -138,6 +137,9 @@
           toStory.cards.push(card);
         }
       },
+      set(stories) {
+        this.state.stories = stories;
+      }
     }
 
     function csrfSafeMethod(method) {
@@ -386,6 +388,26 @@
         store: store,
         newStoryForm: false,
       },
+      methods: {
+        refreshData() {
+          var that = this;
+          $.ajax({
+            type: "GET",
+            url: "/stories/",
+          }).done(
+            function (data) {
+              that.$root.store.set(data.stories);
+            }
+          ).fail(
+            function (xhr) {
+              console.log(xhr.responseJSON);
+            }
+          );
+        }
+      },
+      beforeMount() {
+        this.refreshData();
+      }
     })
   });
 </script>

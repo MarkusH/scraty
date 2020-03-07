@@ -25,38 +25,40 @@ def serialize_card(card):
 
 @ensure_csrf_cookie
 def index(request):
-    cards_qs = Card.objects.select_related("user")
-    stories = Story.objects.filter(done=False).prefetch_related(
-        Prefetch("cards", queryset=cards_qs),
-    )
-    context = {
-        "stories": [
-            {
-                "id": str(story.pk),
-                "title": story.title,
-                "link": story.link,
-                "cards": [serialize_card(card) for card in story.cards.all()],
-            }
-            for story in stories
-        ],
-        "debug": settings.DEBUG,
-    }
+    context = {"debug": settings.DEBUG}
     return render(request, "story/board.html", context=context)
 
 
-@require_POST
-def save_story(request):
-    form = StoryForm(request.POST)
-    if form.is_valid():
-        data = form.cleaned_data
-        story, _ = Story.objects.update_or_create(
-            id=data.get("id"),
-            defaults={"title": data["title"], "link": data.get("link")},
+def stories_view(request):
+    if request.method == "POST":
+        form = StoryForm(request.POST)
+        if form.is_valid():
+            data = form.cleaned_data
+            story, _ = Story.objects.update_or_create(
+                id=data.get("id"),
+                defaults={"title": data["title"], "link": data.get("link")},
+            )
+            return JsonResponse(
+                {"id": str(story.pk), "title": story.title, "link": story.link}
+            )
+        return JsonResponse(form.errors.get_json_data(), status=400)
+    else:
+        cards_qs = Card.objects.select_related("user")
+        stories = Story.objects.filter(done=False).prefetch_related(
+            Prefetch("cards", queryset=cards_qs),
         )
-        return JsonResponse(
-            {"id": str(story.pk), "title": story.title, "link": story.link}
-        )
-    return JsonResponse(form.errors.get_json_data(), status=400)
+        data = {
+            "stories": [
+                {
+                    "id": str(story.pk),
+                    "title": story.title,
+                    "link": story.link,
+                    "cards": [serialize_card(card) for card in story.cards.all()],
+                }
+                for story in stories
+            ],
+        }
+        return JsonResponse(data)
 
 
 @require_POST
