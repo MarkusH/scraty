@@ -403,6 +403,7 @@
               console.log(xhr.responseJSON);
             }
           );
+          setTimeout(this.refreshData, 10000);
         }
       },
       beforeMount() {
