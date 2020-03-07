@@ -10,7 +10,7 @@
       <th>Verify</th>
       <th>Done</th>
     </tr>
-    <tr is="story" v-for="story in store.state.stories" :key="story.id + '-' + story.cards.length" :story="story"></tr>
+    <tr is="story" v-for="story in store.state.stories" :key="story.id" :story="story"></tr>
     <tr is="story" v-if="newStoryForm" v-on:close-story-form="newStoryForm = false"></tr>
   </table>
   <a v-on:click="newStoryForm = true" class="button primary"><i class="fi-plus"></i> Add a story</a>
@@ -96,7 +96,7 @@
       },
       addStory(story) {
         console.log("addStory", story);
-        this.state.stories.push({ id: story.id, title: story.title, link: story.link, cards: [] });
+        this.state.stories.push(story);
       },
       deleteStory(id) {
         console.log("deleteStory", id);
@@ -112,7 +112,7 @@
       addCard(card, storyId) {
         console.log("addCard", card, storyId);
         let story = this.state.stories.find(s => s.id === storyId);
-        story.cards.push({ id: card.id, text: card.text, status: card.status, user: card.user });
+        story.cards.push(card);
       },
       deleteCard(id, storyId) {
         console.log("deleteCard", id, storyId);
@@ -125,8 +125,7 @@
         let card = story.cards.find(c => c.id === id);
         card.text = text;
         card.status = status;
-        card.user.name = user.name;
-        card.user.color = user.color;
+        card.user = user;
       },
       moveCard(id, status, fromStoryId, toStoryId) {
         console.log("moveCard", id, status, fromStoryId, toStoryId);
@@ -155,7 +154,11 @@
     });
 
     Vue.component('story', {
-      props: ["story"],
+      props: {
+        story: {
+          type: Object,
+        }
+      },
       data: function () {
         return {
           id: this.story && this.story.id || null,
@@ -167,6 +170,17 @@
           editing: !(this.story && this.story.id),
           errors: {},
           newCardForm: false,
+        }
+      },
+      watch: {
+        story: {
+          deep: true,
+          handler() {
+            this.id = this.story && this.story.id || null;
+            this.title = this.story && this.story.title || "";
+            this.link = this.story && this.story.link || "";
+            this.cards = this.story && this.story.cards || [];
+          }
         }
       },
       computed: {
@@ -212,7 +226,7 @@
           }).done(
             function (data) {
               if (that.id === null) {
-                that.$root.store.addStory({ id: data.id, title: data.title, link: data.link });
+                that.$root.store.addStory({ id: data.id, title: data.title, link: data.link, cards: [] });
                 that.$emit("close-story-form");
               } else {
                 that.$root.store.updateStory(data.id, data.title, data.link)
@@ -267,7 +281,15 @@
     });
 
     Vue.component('card', {
-      props: ["card", "storyId"],
+      props: {
+        card: {
+          type: Object,
+        },
+        storyId: {
+          type: String,
+          required: true,
+        }
+      },
       data: function () {
         return {
           id: this.card && this.card.id || null,
@@ -279,6 +301,17 @@
           editing: !(this.card && this.card.id),
           errors: {},
         }
+      },
+      watch: {
+        card: {
+          deep: true,
+          handler() {
+            this.id = this.card && this.card.id || null;
+            this.text = this.card && this.card.text || "";
+            this.status = this.card && this.card.status || "TODO";
+            this.user = this.card && this.card.user || { name: "", color: "ffffff" };
+          }
+        },
       },
       template: '#card-template',
       methods: {
