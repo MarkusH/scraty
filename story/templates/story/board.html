@@ -49,17 +49,17 @@
         </div>
       </td>
       <td v-on:drop.prevent="handleDrop($event, 'TODO')" v-on:dragover.prevent>
-        <card v-for="(card, idx) in cardsTodo" :key="card.id + '-' + idx + '-' + cardsTodo.length" :card="card" :story-id="id"></card>
+        <card v-for="card in cardsTodo" :key="card.id" :card="card" :story-id="id"></card>
         <card v-if="newCardForm" :story-id="id" v-on:close-card-form="newCardForm = false"></card>
       </td>
       <td v-on:drop.prevent="handleDrop($event, 'IN_PROGRESS')" v-on:dragover.prevent>
-        <card v-for="(card, idx) in cardsInProgress" :key="card.id + '-' + idx + '-' + cardsInProgress.length" :card="card" :story-id="id"></card>
+        <card v-for="card in cardsInProgress" :key="card.id" :card="card" :story-id="id"></card>
       </td>
       <td v-on:drop.prevent="handleDrop($event, 'VERIFY')" v-on:dragover.prevent>
-        <card v-for="(card, idx) in cardsVerify" :key="card.id + '-' + idx + '-' + cardsVerify.length" :card="card" :story-id="id"></card>
+        <card v-for="card in cardsVerify" :key="card.id" :card="card" :story-id="id"></card>
       </td>
       <td v-on:drop.prevent="handleDrop($event, 'DONE')" v-on:dragover.prevent>
-        <card v-for="(card, idx) in cardsDone" :key="card.id + '-' + idx + '-' + cardsDone.length" :card="card" :story-id="id"></card>
+        <card v-for="card in cardsDone" :key="card.id" :card="card" :story-id="id"></card>
       </td>
     </tr>
   </script>
