@@ -28,64 +28,64 @@
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
 
 <script type="text/x-template" id="story-template">
-    <tr>
-      <td class="stories">
-        <div class="display" v-show="!editing">
-          <div class="title">{% verbatim %}{{ title }}{% endverbatim %}</div>
-          <div v-show="link" class="link"><a :href="link">Link</a></div>
-        </div>
-        <div class="display" v-show="editing">
-          <textarea v-model.lazy.trim="title" placeholder="Title"></textarea>
-          <input v-model.lazy.trim="link" placeholder="Link">
-          <div class="errors" v-for="(errors, field) in errors">{% verbatim %}{{ field[0].toUpperCase() + field.slice(1) }}: <span v-for="error in errors">{{ error.message }}</span>{% endverbatim %}</div>
-        </div>
-        <div class="actions">
-          <a v-on:click="save" class="button-link" v-show="editing"><i class="fi-save"></i></a>
-          <a v-on:click="abortEdit" class="button-link" v-show="editing"><i class="fi-x"></i></a>
-          <a v-on:click="startEdit" class="button-link" v-show="!editing"><i class="fi-page-edit"></i></a>
-          <a v-on:click="remove" class="button-link" v-show="id"><i class="fi-trash"></i></a>
-          <a v-on:click="newCardForm = true" class="button-link" v-show="id"><i class="fi-plus"></i></a>
-        </div>
-      </td>
-      <td v-on:drop.prevent="handleDrop($event, 'TODO')" v-on:dragover.prevent>
-        <card v-for="card in cardsTodo" :key="card.id" :card="card" :story-id="id"></card>
-        <card v-if="newCardForm" :story-id="id" v-on:close-card-form="newCardForm = false"></card>
-      </td>
-      <td v-on:drop.prevent="handleDrop($event, 'IN_PROGRESS')" v-on:dragover.prevent>
-        <card v-for="card in cardsInProgress" :key="card.id" :card="card" :story-id="id"></card>
-      </td>
-      <td v-on:drop.prevent="handleDrop($event, 'VERIFY')" v-on:dragover.prevent>
-        <card v-for="card in cardsVerify" :key="card.id" :card="card" :story-id="id"></card>
-      </td>
-      <td v-on:drop.prevent="handleDrop($event, 'DONE')" v-on:dragover.prevent>
-        <card v-for="card in cardsDone" :key="card.id" :card="card" :story-id="id"></card>
-      </td>
-    </tr>
-  </script>
-
-<script type="text/x-template" id="card-template">
-    <div class="card" :style="{ backgroundColor: '#' + (user.color || 'ffffff') }" :draggable="id!==null && !editing" v-on:dragstart="dragStart">
-      <div class="actions">
-        <a v-on:click="save" class="button-link" v-if="editing"><i class="fi-save"></i></a>
-        <a v-on:click="abortEdit" class="button-link" v-if="editing"><i class="fi-x"></i></a>
-        <a v-on:click="startEdit" class="button-link" v-if="!editing"><i class="fi-page-edit"></i></a>
-        <a v-on:click="remove" class="button-link" v-if="id!==null"><i class="fi-trash"></i></a>
+  <tr>
+    <td class="stories">
+      <div class="display" v-show="!editing">
+        <div class="title">{% verbatim %}{{ title }}{% endverbatim %}</div>
+        <div v-show="link" class="link"><a :href="link">Link</a></div>
       </div>
-      <div class="display" v-if="!editing">
-        <div class="text">{% verbatim %}{{ text }}{% endverbatim %}</div>
-        <div class="user">By: {% verbatim %}{{ user.name }}{% endverbatim %}</div>
-      </div>
-      <div class="edit" v-if="editing">
-        <div>
-          <textarea v-model.lazy.trim="text" placeholder="Text"></textarea>
-        </div>
-        <div>
-          <input v-model.lazy.trim="user.name" placeholder="User">
-        </div>
+      <div class="display" v-show="editing">
+        <textarea v-model.lazy.trim="title" placeholder="Title"></textarea>
+        <input v-model.lazy.trim="link" placeholder="Link">
         <div class="errors" v-for="(errors, field) in errors">{% verbatim %}{{ field[0].toUpperCase() + field.slice(1) }}: <span v-for="error in errors">{{ error.message }}</span>{% endverbatim %}</div>
       </div>
+      <div class="actions">
+        <a v-on:click="save" class="button-link" v-show="editing"><i class="fi-save"></i></a>
+        <a v-on:click="abortEdit" class="button-link" v-show="editing"><i class="fi-x"></i></a>
+        <a v-on:click="startEdit" class="button-link" v-show="!editing"><i class="fi-page-edit"></i></a>
+        <a v-on:click="remove" class="button-link" v-show="id"><i class="fi-trash"></i></a>
+        <a v-on:click="newCardForm = true" class="button-link" v-show="id"><i class="fi-plus"></i></a>
+      </div>
+    </td>
+    <td v-on:drop.prevent="handleDrop($event, 'TODO')" v-on:dragover.prevent>
+      <card v-for="card in cardsTodo" :key="card.id" :card="card" :story-id="id"></card>
+      <card v-if="newCardForm" :story-id="id" v-on:close-card-form="newCardForm = false"></card>
+    </td>
+    <td v-on:drop.prevent="handleDrop($event, 'IN_PROGRESS')" v-on:dragover.prevent>
+      <card v-for="card in cardsInProgress" :key="card.id" :card="card" :story-id="id"></card>
+    </td>
+    <td v-on:drop.prevent="handleDrop($event, 'VERIFY')" v-on:dragover.prevent>
+      <card v-for="card in cardsVerify" :key="card.id" :card="card" :story-id="id"></card>
+    </td>
+    <td v-on:drop.prevent="handleDrop($event, 'DONE')" v-on:dragover.prevent>
+      <card v-for="card in cardsDone" :key="card.id" :card="card" :story-id="id"></card>
+    </td>
+  </tr>
+</script>
+
+<script type="text/x-template" id="card-template">
+  <div class="card" :style="{ backgroundColor: '#' + (user.color || 'ffffff') }" :draggable="id!==null && !editing" v-on:dragstart="dragStart">
+    <div class="card-divider actions align-right">
+      <a v-on:click="save" class="button-link" v-if="editing"><i class="fi-save"></i></a>
+      <a v-on:click="abortEdit" class="button-link" v-if="editing"><i class="fi-x"></i></a>
+      <a v-on:click="startEdit" class="button-link" v-if="!editing"><i class="fi-page-edit"></i></a>
+      <a v-on:click="remove" class="button-link" v-if="id!==null"><i class="fi-trash"></i></a>
     </div>
-  </script>
+    <div class="card-section display" v-if="!editing">
+      <div class="text">{% verbatim %}{{ text }}{% endverbatim %}</div>
+      <div class="user" v-show="user.name">{% verbatim %}{{ user.name }}{% endverbatim %}</div>
+    </div>
+    <div class="card-section edit" v-if="editing">
+      <div>
+        <textarea v-model.lazy.trim="text" placeholder="Text"></textarea>
+      </div>
+      <div>
+        <input v-model.lazy.trim="user.name" placeholder="User">
+      </div>
+      <div class="errors" v-for="(errors, field) in errors">{% verbatim %}{{ field[0].toUpperCase() + field.slice(1) }}: <span v-for="error in errors">{{ error.message }}</span>{% endverbatim %}</div>
+    </div>
+  </div>
+</script>
 
 <script>
   $(function () {

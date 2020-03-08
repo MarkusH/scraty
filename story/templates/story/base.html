@@ -16,21 +16,27 @@
     table.board {
       width: 100%;
     }
+
     table.users {
       width: 50%;
     }
 
-    td, th {
+    td,
+    th {
       border: 1px solid;
       vertical-align: top;
     }
 
     .stories {
-      width: 250px;
+      width: 200px;
     }
 
     textarea {
       resize: none;
+    }
+
+    .stories .actions a {
+      margin-right: 0.5rem;
     }
 
     .stories textarea,
@@ -46,35 +52,40 @@
     }
 
     .card {
-      width: 100px;
-      min-height: 100px;
-      border: 1px solid;
-      margin: 10px;
+      width: 120px;
+      word-wrap: anywhere;
       float: left;
-      font-size: 0.8rem;
+      margin-right: 0.5rem;
     }
 
     .card .actions {
-      background-color: #e0e0e0;
-      text-align: right;
+      padding: 0.25rem;
     }
 
-    .card .display {
-      max-width: 94px;
-      padding: 1px;
-      margin: 1px;
+    .card .actions a {
+      margin-left: 0.5rem;
     }
-    .card .user {
+
+    .card .display,
+    .card .edit {
+      font-size: 0.75rem;
+      padding: 0.5rem;
+    }
+
+    .card .display .text {
+      overflow: hidden auto;
+    }
+
+    .card .display .user {
+      margin-top: 0.25rem;
       font-style: italic;
+      text-align: right;
     }
 
     .card textarea,
     .card input {
-      width: 94px;
-      border: 1px solid;
-      padding: 1px;
-      margin: 1px;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
+      width: 100%;
     }
 
     .hidden {
