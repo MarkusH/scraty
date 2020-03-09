@@ -166,7 +166,7 @@
     }
 
     $.ajaxSetup({
-      beforeSend: function (xhr, settings) {
+      beforeSend(xhr, settings) {
         if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
           xhr.setRequestHeader("X-CSRFToken", Cookies.get("csrftoken"));
         }
@@ -179,7 +179,7 @@
           type: Object,
         }
       },
-      data: function () {
+      data() {
         return {
           id: this.story && this.story.id || null,
           title: this.story && this.story.title || "",
@@ -204,28 +204,28 @@
         }
       },
       computed: {
-        cardsTodo: function () {
+        cardsTodo() {
           return this.cards.filter(card => card.status === "TODO");
         },
-        cardsInProgress: function () {
+        cardsInProgress() {
           return this.cards.filter(card => card.status === "IN_PROGRESS");
         },
-        cardsVerify: function () {
+        cardsVerify() {
           return this.cards.filter(card => card.status === "VERIFY");
         },
-        cardsDone: function () {
+        cardsDone() {
           return this.cards.filter(card => card.status === "DONE");
         },
       },
       template: "#story-template",
       methods: {
-        startEdit: function () {
+        startEdit() {
           this.$root.store.disablePolling();
           this.editing = true
           this.oldTitle = this.title;
           this.oldLink = this.link;
         },
-        abortEdit: function (event) {
+        abortEdit(event) {
           if (this.id === null) {
             this.$emit("close-story-form");
           } else {
@@ -235,7 +235,7 @@
           }
           this.$root.store.enablePolling();
         },
-        save: function () {
+        save() {
           var that = this;
           $.ajax({
             type: "POST",
@@ -265,7 +265,7 @@
             }
           );
         },
-        remove: function () {
+        remove() {
           this.$root.store.disablePolling();
           var that = this;
           if (window.confirm(`Do you really want to delete the story "${this.title}"`)) {
@@ -287,7 +287,7 @@
             this.$root.store.enablePolling();
           }
         },
-        handleDrop: function (event, newStatus) {
+        handleDrop(event, newStatus) {
           var that = this;
           ({ cardId, storyId } = JSON.parse(event.dataTransfer.getData("data")));
           $.ajax({
@@ -316,7 +316,7 @@
           required: true,
         }
       },
-      data: function () {
+      data() {
         return {
           id: this.card && this.card.id || null,
           text: this.card && this.card.text || "",
@@ -341,13 +341,13 @@
       },
       template: '#card-template',
       methods: {
-        startEdit: function () {
+        startEdit() {
           this.$root.store.disablePolling();
           this.editing = true
           this.oldText = this.text;
           this.oldUserName = this.userName;
         },
-        abortEdit: function (event) {
+        abortEdit(event) {
           if (this.id === null) {
             this.$emit("close-card-form");
           } else {
@@ -357,7 +357,7 @@
           }
           this.$root.store.enablePolling();
         },
-        save: function () {
+        save() {
           var that = this;
           $.ajax({
             type: "POST",
@@ -389,7 +389,7 @@
             }
           );
         },
-        remove: function () {
+        remove() {
           this.$root.store.disablePolling();
           var that = this;
           $.ajax({
@@ -407,7 +407,7 @@
             }
           );
         },
-        dragStart: function (event) {
+        dragStart(event) {
           event.dataTransfer.setData("data", JSON.stringify({ cardId: this.id, storyId: this.storyId }));
         },
       }
