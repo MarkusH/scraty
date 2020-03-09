@@ -22,8 +22,10 @@
 
 {% block extrajs %}
 {% if debug %}
+<script>const DEBUG = true;</script>
 <script src="https://cdn.jsdelivr.net/npm/vue@2.6.11/dist/vue.js" integrity="sha256-NSuqgY2hCZJUN6hDMFfdxvkexI7+iLxXQbL540RQ/c4=" crossorigin="anonymous"></script>
 {% else %}
+<script>const DEBUG = false;</script>
 <script src="https://cdn.jsdelivr.net/npm/vue@2.6.11/dist/vue.min.js" integrity="sha256-ngFW3UnAN0Tnm76mDuu7uUtYEcG3G5H1+zioJw3t+68=" crossorigin="anonymous"></script>
 {% endif %}
 <script src="https://cdn.jsdelivr.net/npm/js-cookie@2.2.1/src/js.cookie.min.js" integrity="sha256-Obj+Y2RiFyX/kEMaNK8Ph5dtlcAMv9HQ83EaPx+hoHs=" crossorigin="anonymous"></script>
@@ -97,31 +99,31 @@
         stories: [],
       },
       addStory(story) {
-        console.log("addStory", story);
+        DEBUG && console.log("addStory", story);
         this.state.stories.push(story);
       },
       deleteStory(id) {
-        console.log("deleteStory", id);
+        DEBUG && console.log("deleteStory", id);
         this.state.stories = this.state.stories.filter(s => s.id !== id);
       },
       updateStory(id, title, link) {
-        console.log("updateStory", id, title, link);
+        DEBUG && console.log("updateStory", id, title, link);
         let story = this.state.stories.find(s => s.id === id);
         story.title = title;
         story.link = link;
       },
       addCard(card, storyId) {
-        console.log("addCard", card, storyId);
+        DEBUG && console.log("addCard", card, storyId);
         let story = this.state.stories.find(s => s.id === storyId);
         story.cards.push(card);
       },
       deleteCard(id, storyId) {
-        console.log("deleteCard", id, storyId);
+        DEBUG && console.log("deleteCard", id, storyId);
         let story = this.state.stories.find(s => s.id === storyId);
         story.cards = story.cards.filter(c => c.id !== id);
       },
       updateCard(id, text, status, user, storyId) {
-        console.log("updateCard", id, text, status, user, storyId);
+        DEBUG && console.log("updateCard", id, text, status, user, storyId);
         let story = this.state.stories.find(s => s.id === storyId);
         let card = story.cards.find(c => c.id === id);
         card.text = text;
@@ -129,7 +131,7 @@
         card.user = user;
       },
       moveCard(id, status, fromStoryId, toStoryId) {
-        console.log("moveCard", id, status, fromStoryId, toStoryId);
+        DEBUG && console.log("moveCard", id, status, fromStoryId, toStoryId);
         let fromStory = this.state.stories.find(s => s.id === fromStoryId);
         let card = fromStory.cards.find(c => c.id === id);
         card.status = status;
@@ -140,19 +142,19 @@
         }
       },
       set(stories) {
-        console.log("set")
+        DEBUG && console.log("set");
         this.state.stories = stories;
       },
       enablePolling() {
-        console.log("enablePolling")
+        DEBUG && console.log("enablePolling");
         this.state.poll = true;
       },
       disablePolling() {
-        console.log("disablePolling")
+        DEBUG && console.log("disablePolling");
         this.state.poll = false;
       },
       togglePolling() {
-        console.log("togglePolling")
+        DEBUG && console.log("togglePolling");
         this.state.poll = !this.state.poll;
       },
       isPolling() {
@@ -259,7 +261,7 @@
             }
           ).fail(
             function (xhr) {
-              console.log(xhr.responseJSON);
+              DEBUG && console.log(xhr.responseJSON);
               that.errors = xhr.responseJSON;
               that.$root.store.enablePolling();
             }
@@ -383,7 +385,7 @@
             }
           ).fail(
             function (xhr) {
-              console.log(xhr.responseJSON);
+              DEBUG && console.log(xhr.responseJSON);
               that.errors = xhr.responseJSON;
               that.$root.store.enablePolling();
             }
