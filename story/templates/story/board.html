@@ -4,7 +4,9 @@
 <div id="app">
   <table class="board">
     <tr>
-      <th class="stories"></th>
+      <th class="stories status">
+        <a v-bind:class="store.state.poll && 'button tiny success' || 'button tiny alert'" v-on:click="togglePolling">{% verbatim %}{{ store.state.poll && 'Go Offline' || 'Go Online' }}{% endverbatim %}</a>
+      </th>
       <th>Todo</th>
       <th>In Progress</th>
       <th>Verify</th>
@@ -91,6 +93,7 @@
   $(function () {
     const store = {
       state: {
+        poll: true,
         stories: [],
       },
       addStory(story) {
@@ -102,11 +105,10 @@
         this.state.stories = this.state.stories.filter(s => s.id !== id);
       },
       updateStory(id, title, link) {
-        console.log("updateStory", id, title, link, cards);
+        console.log("updateStory", id, title, link);
         let story = this.state.stories.find(s => s.id === id);
         story.title = title;
         story.link = link;
-        story.cards = cards;
       },
       addCard(card, storyId) {
         console.log("addCard", card, storyId);
@@ -138,8 +140,24 @@
         }
       },
       set(stories) {
+        console.log("set")
         this.state.stories = stories;
-      }
+      },
+      enablePolling() {
+        console.log("enablePolling")
+        this.state.poll = true;
+      },
+      disablePolling() {
+        console.log("disablePolling")
+        this.state.poll = false;
+      },
+      togglePolling() {
+        console.log("togglePolling")
+        this.state.poll = !this.state.poll;
+      },
+      isPolling() {
+        return this.state.poll === true;
+      },
     }
 
     function csrfSafeMethod(method) {
@@ -202,6 +220,7 @@
       template: "#story-template",
       methods: {
         startEdit: function () {
+          this.$root.store.disablePolling();
           this.editing = true
           this.oldTitle = this.title;
           this.oldLink = this.link;
@@ -214,6 +233,7 @@
             this.link = this.oldLink;
             this.editing = false;
           }
+          this.$root.store.enablePolling();
         },
         save: function () {
           var that = this;
@@ -231,19 +251,22 @@
                 that.$root.store.addStory({ id: data.id, title: data.title, link: data.link, cards: [] });
                 that.$emit("close-story-form");
               } else {
-                that.$root.store.updateStory(data.id, data.title, data.link)
+                that.$root.store.updateStory(data.id, data.title, data.link);
                 that.editing = false;
                 that.errors = {};
               }
+              that.$root.store.enablePolling();
             }
           ).fail(
             function (xhr) {
               console.log(xhr.responseJSON);
               that.errors = xhr.responseJSON;
+              that.$root.store.enablePolling();
             }
           );
         },
         remove: function () {
+          this.$root.store.disablePolling();
           var that = this;
           if (window.confirm(`Do you really want to delete the story "${this.title}"`)) {
             $.ajax({
@@ -252,16 +275,17 @@
             }).done(
               function (data) {
                 that.$root.store.deleteStory(that.id);
+                that.$root.store.enablePolling();
               }
             ).fail(
               function (xhr) {
                 console.log(xhr.responseText);
+                that.$root.store.enablePolling();
               }
             );
+          } else {
+            this.$root.store.enablePolling();
           }
-        },
-        deleteCard: function (cardId) {
-          this.cards = this.cards.filter(card => card.id !== cardId);
         },
         handleDrop: function (event, newStatus) {
           var that = this;
@@ -318,6 +342,7 @@
       template: '#card-template',
       methods: {
         startEdit: function () {
+          this.$root.store.disablePolling();
           this.editing = true
           this.oldText = this.text;
           this.oldUserName = this.userName;
@@ -330,6 +355,7 @@
             this.userName = this.oldUserName;
             this.editing = false;
           }
+          this.$root.store.enablePolling();
         },
         save: function () {
           var that = this;
@@ -353,15 +379,18 @@
                 that.editing = false;
                 that.errors = {};
               }
+              that.$root.store.enablePolling();
             }
           ).fail(
             function (xhr) {
               console.log(xhr.responseJSON);
               that.errors = xhr.responseJSON;
+              that.$root.store.enablePolling();
             }
           );
         },
         remove: function () {
+          this.$root.store.disablePolling();
           var that = this;
           $.ajax({
             type: "POST",
@@ -369,10 +398,12 @@
           }).done(
             function (data) {
               that.$root.store.deleteCard(that.id, that.storyId);
+              that.$root.store.enablePolling();
             }
           ).fail(
             function (xhr) {
               console.log(xhr.responseText);
+              that.$root.store.enablePolling();
             }
           );
         },
@@ -390,20 +421,25 @@
       },
       methods: {
         refreshData() {
-          var that = this;
-          $.ajax({
-            type: "GET",
-            url: "/stories/",
-          }).done(
-            function (data) {
-              that.$root.store.set(data.stories);
-            }
-          ).fail(
-            function (xhr) {
-              console.log(xhr.responseJSON);
-            }
-          );
+          if (this.store.isPolling() === true) {
+            var that = this;
+            $.ajax({
+              type: "GET",
+              url: "/stories/",
+            }).done(
+              function (data) {
+                that.$root.store.set(data.stories);
+              }
+            ).fail(
+              function (xhr) {
+                console.log(xhr.responseJSON);
+              }
+            );
+          }
           setTimeout(this.refreshData, 10000);
+        },
+        togglePolling() {
+          this.store.togglePolling()
         }
       },
       beforeMount() {
