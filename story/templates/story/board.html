@@ -50,6 +50,7 @@
         <a v-on:click="remove" class="button-link" v-show="id"><i class="fi-trash"></i></a>
         <a v-on:click="newCardForm = true" class="button-link" v-show="id"><i class="fi-plus"></i></a>
       </div>
+      <progress v-bind:max="progressTotal" v-bind:value="progressCurrent"></progress>
     </td>
     <td v-on:drop.prevent="handleDrop($event, 'TODO')" v-on:dragover.prevent>
       <card v-for="card in cardsTodo" :key="card.id" :card="card" :story-id="id"></card>
@@ -217,6 +218,12 @@
         },
         cardsDone() {
           return this.cards.filter(card => card.status === "DONE");
+        },
+        progressTotal() {
+          return this.cards.length * 100;
+        },
+        progressCurrent() {
+          return this.cardsTodo.length * 0 + this.cardsInProgress.length * 33 + this.cardsVerify.length * 66 + this.cardsDone.length * 100;
         },
       },
       template: "#story-template",
