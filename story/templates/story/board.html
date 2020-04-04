@@ -3,8 +3,15 @@
 {% block content %}
 <div id="app">
   <table class="board">
+    <colgroup>
+      <col class="stories">
+      <col :style="{ width: maxTodoCards / maxCards * 100 + '%' }">
+      <col :style="{ width: maxInProgressCards / maxCards * 100 + '%' }">
+      <col :style="{ width: maxVerifyCards / maxCards * 100 + '%' }">
+      <col>
+    </colgroup>
     <tr>
-      <th class="stories status">
+      <th class="status">
         <a v-bind:class="store.state.poll && 'button tiny success' || 'button tiny alert'" v-on:click="togglePolling">{% verbatim %}{{ store.state.poll && 'Go Offline' || 'Go Online' }}{% endverbatim %}</a>
       </th>
       <th>Todo</th>
@@ -53,17 +60,25 @@
       <progress v-bind:max="progressTotal" v-bind:value="progressCurrent"></progress>
     </td>
     <td v-on:drop.prevent="handleDrop($event, 'TODO')" v-on:dragover.prevent>
-      <card v-for="card in cardsTodo" :key="card.id" :card="card" :story-id="id"></card>
-      <card v-if="newCardForm" :story-id="id" v-on:close-card-form="newCardForm = false"></card>
+      <div class="grid">
+        <card v-for="card in cardsTodo" :key="card.id" :card="card" :story-id="id"></card>
+        <card v-if="newCardForm" :story-id="id" v-on:close-card-form="newCardForm = false"></card>
+      </div>
     </td>
     <td v-on:drop.prevent="handleDrop($event, 'IN_PROGRESS')" v-on:dragover.prevent>
-      <card v-for="card in cardsInProgress" :key="card.id" :card="card" :story-id="id"></card>
+      <div class="grid">
+        <card v-for="card in cardsInProgress" :key="card.id" :card="card" :story-id="id"></card>
+      </div>
     </td>
     <td v-on:drop.prevent="handleDrop($event, 'VERIFY')" v-on:dragover.prevent>
-      <card v-for="card in cardsVerify" :key="card.id" :card="card" :story-id="id"></card>
+      <div class="grid">
+        <card v-for="card in cardsVerify" :key="card.id" :card="card" :story-id="id"></card>
+      </div>
     </td>
     <td v-on:drop.prevent="handleDrop($event, 'DONE')" v-on:dragover.prevent>
-      <card v-for="card in cardsDone" :key="card.id" :card="card" :story-id="id"></card>
+      <div class="grid">
+        <card v-for="card in cardsDone" :key="card.id" :card="card" :story-id="id"></card>
+      </div>
     </td>
   </tr>
 </script>
@@ -450,6 +465,39 @@
         togglePolling() {
           this.store.togglePolling()
         }
+      },
+      computed: {
+        maxTodoCards() {
+          var n = 1;
+          this.store.state.stories.forEach(story => {
+            n = Math.max(n, story.cards.filter(card => card.status === "TODO").length)
+          });
+          return n;
+        },
+        maxInProgressCards() {
+          var n = 1;
+          this.store.state.stories.forEach(story => {
+            n = Math.max(n, story.cards.filter(card => card.status === "IN_PROGRESS").length)
+          });
+          return n;
+        },
+        maxVerifyCards() {
+          var n = 1;
+          this.store.state.stories.forEach(story => {
+            n = Math.max(n, story.cards.filter(card => card.status === "VERIFY").length)
+          });
+          return n;
+        },
+        maxDoneCards() {
+          var n = 1;
+          this.store.state.stories.forEach(story => {
+            n = Math.max(n, story.cards.filter(card => card.status === "DONE").length)
+          });
+          return n;
+        },
+        maxCards() {
+          return this.maxTodoCards + this.maxInProgressCards + this.maxVerifyCards + this.maxDoneCards;
+        },
       },
       beforeMount() {
         this.refreshData();
