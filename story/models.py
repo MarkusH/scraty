@@ -1,4 +1,5 @@
 import uuid
+
 from django.db import models
 
 
@@ -30,3 +31,4 @@ class Card(models.Model):
     status = models.CharField(
         max_length=11, choices=Status.choices, default=Status.TODO
     )
+    done = models.BooleanField(default=False)

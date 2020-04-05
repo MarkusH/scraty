@@ -16,21 +16,21 @@ Including another URLconf
 from django.urls import path
 
 from story.views import (
-    delete_card,
-    delete_story,
+    cards_detail_view,
+    cards_move_view,
+    cards_view,
     index,
-    move_card,
-    save_card,
+    stories_detail_view,
     stories_view,
     users,
 )
 
 urlpatterns = [
     path("", index, name="index"),
-    path("stories/", stories_view, name="save_story"),
-    path("stories/<id>/", delete_story, name="delete_story"),
-    path("cards/", save_card, name="save_card"),
-    path("cards/<id>/", delete_card, name="delete_card"),
-    path("cards/<id>/story/<story>/move/<status>/", move_card, name="move_card"),
+    path("cards/", cards_view, name="cards"),
+    path("cards/<id>/", cards_detail_view, name="cards_detail"),
+    path("cards/<id>/move/", cards_move_view, name="cards_move"),
+    path("stories/", stories_view, name="stories"),
+    path("stories/<id>/", stories_detail_view, name="stories_detail"),
     path("users/", users, name="users"),
 ]

@@ -1,12 +1,13 @@
 from django.conf import settings
 from django.db.models import Prefetch
 from django.forms.models import modelformset_factory
+from django.http import QueryDict
 from django.http.response import HttpResponse, JsonResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.csrf import ensure_csrf_cookie
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_http_methods, require_POST
 
-from .forms import CardForm, StoryForm
+from .forms import CardForm, CardMoveForm, StoryForm
 from .models import Card, Story, User
 
 
@@ -23,93 +24,91 @@ def serialize_card(card):
     }
 
 
+def serialize_story(story, with_cards=False):
+    data = {"id": str(story.pk), "title": story.title, "link": story.link}
+    if with_cards:
+        data["cards"] = [serialize_card(card) for card in story.cards.all()]
+    return data
+
+
 @ensure_csrf_cookie
 def index(request):
     context = {"debug": settings.DEBUG}
     return render(request, "story/board.html", context=context)
 
 
+@require_http_methods(["GET", "POST"])
 def stories_view(request):
     if request.method == "POST":
         form = StoryForm(request.POST)
         if form.is_valid():
-            data = form.cleaned_data
-            story, _ = Story.objects.update_or_create(
-                id=data.get("id"),
-                defaults={"title": data["title"], "link": data.get("link")},
-            )
-            return JsonResponse(
-                {"id": str(story.pk), "title": story.title, "link": story.link}
-            )
+            story = form.save()
+            return JsonResponse(serialize_story(story))
         return JsonResponse(form.errors.get_json_data(), status=400)
     else:
-        cards_qs = Card.objects.select_related("user")
+        cards_qs = Card.objects.filter(done=False).select_related("user")
         stories = Story.objects.filter(done=False).prefetch_related(
             Prefetch("cards", queryset=cards_qs),
         )
         data = {
-            "stories": [
-                {
-                    "id": str(story.pk),
-                    "title": story.title,
-                    "link": story.link,
-                    "cards": [serialize_card(card) for card in story.cards.all()],
-                }
-                for story in stories
-            ],
+            "stories": [serialize_story(story, with_cards=True) for story in stories],
         }
         return JsonResponse(data)
 
 
-@require_POST
-def delete_story(request, id):
-    Story.objects.get(id=id).delete()
-    return HttpResponse(status=204)
+@require_http_methods(["PUT", "DELETE"])
+def stories_detail_view(request, id):
+    if request.method == "DELETE":
+        story = get_object_or_404(Story, id=id, done=False)
+        story.done = True
+        story.save()
+        return HttpResponse(status=204)
+    elif request.method == "PUT":
+        story = get_object_or_404(Story, id=id, done=False)
+        form = StoryForm(QueryDict(request.body), instance=story)
+        if form.is_valid():
+            story = form.save()
+            return JsonResponse(serialize_story(story))
+        return JsonResponse(form.errors.get_json_data(), status=400)
+    else:
+        return HttpResponse(status=405)
 
 
 @require_POST
-def save_card(request):
+def cards_view(request):
     form = CardForm(request.POST)
     if form.is_valid():
-        data = form.cleaned_data
-        if data.get("user"):
-            user, _ = User.objects.get_or_create(name=data["user"])
-        else:
-            user = None
-
-        if data.get("id"):
-            card = Card.objects.select_related("user").get(id=data["id"])
-            card.text = data["text"]
-            card.story_id = data["story"]
-            card.status = data["status"]
-        else:
-            card = Card(
-                text=data["text"], story_id=data["story"], status=data["status"]
-            )
-
-        card.user = user
-        card.save()
-
+        card = form.save()
         return JsonResponse(serialize_card(card))
     return JsonResponse(form.errors.get_json_data(), status=400)
 
 
-@require_POST
-def delete_card(request, id):
-    Card.objects.get(id=id).delete()
-    return HttpResponse(status=204)
-
-
-@require_POST
-def move_card(request, id, story, status):
-    if status in Card.Status:
-        card = Card.objects.get(id=id)
-        card.story_id = story
-        card.status = status
+@require_http_methods(["PUT", "DELETE"])
+def cards_detail_view(request, id):
+    if request.method == "DELETE":
+        card = get_object_or_404(Card, id=id, done=False)
+        card.done = True
         card.save()
-        return JsonResponse(serialize_card(card), status=200)
+        return HttpResponse(status=204)
+    elif request.method == "PUT":
+        card = get_object_or_404(Card, id=id, done=False)
+        form = CardForm(QueryDict(request.body), instance=card)
+        if form.is_valid():
+            card = form.save()
+            return JsonResponse(serialize_card(card))
+        return JsonResponse(form.errors.get_json_data(), status=400)
     else:
-        return JsonResponse({"errors": "unknown status"}, status=400)
+        return HttpResponse(status=405)
+
+
+@require_POST
+def cards_move_view(request, id):
+    card = get_object_or_404(Card, id=id, done=False)
+    form = CardMoveForm(request.POST, instance=card)
+    if form.is_valid():
+        card = form.save()
+        return JsonResponse(serialize_card(card))
+    return JsonResponse(form.errors.get_json_data(), status=400)
 
 
 def users(request):

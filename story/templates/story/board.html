@@ -262,8 +262,8 @@
         save() {
           var that = this;
           $.ajax({
-            type: "POST",
-            url: "/stories/",
+            type: (this.id === null) ? "POST" : "PUT",
+            url: (this.id === null) ? "/stories/" : `/stories/${this.id}/`,
             data: {
               id: this.id,
               title: this.title,
@@ -294,8 +294,8 @@
           var that = this;
           if (window.confirm(`Do you really want to delete the story "${this.title}"`)) {
             $.ajax({
-              type: "POST",
-              url: "/stories/:id/".replace(/:id/, this.id),
+              type: "DELETE",
+              url: `/stories/${this.id}/`,
             }).done(
               function (data) {
                 that.$root.store.deleteStory(that.id);
@@ -316,7 +316,11 @@
           ({ cardId, storyId } = JSON.parse(event.dataTransfer.getData("data")));
           $.ajax({
             type: "POST",
-            url: "/cards/:id/story/:story/move/:status/".replace(/:id/, cardId).replace(/:story/, this.id).replace(/:status/, newStatus),
+            url: `/cards/${cardId}/move/`,
+            data: {
+              story: this.id,
+              status: newStatus,
+            },
           }).done(
             function (data) {
               that.$root.store.moveCard(cardId, newStatus, storyId, that.id);
@@ -384,8 +388,8 @@
         save() {
           var that = this;
           $.ajax({
-            type: "POST",
-            url: "/cards/",
+            type: (this.id === null) ? "POST" : "PUT",
+            url: (this.id === null) ? "/cards/" : `/cards/${this.id}/`,
             data: {
               id: this.id,
               story: this.storyId,
@@ -417,8 +421,8 @@
           this.$root.store.disablePolling();
           var that = this;
           $.ajax({
-            type: "POST",
-            url: "/cards/:id/".replace(/:id/, this.id),
+            type: "DELETE",
+            url: `/cards/${this.id}/`,
           }).done(
             function (data) {
               that.$root.store.deleteCard(that.id, that.storyId);
