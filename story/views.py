@@ -33,7 +33,7 @@ def serialize_story(story, with_cards=False):
 
 @ensure_csrf_cookie
 def index(request):
-    context = {"debug": settings.DEBUG}
+    context = {"debug": settings.DEBUG, "base_url": settings.FORCE_SCRIPT_NAME or ""}
     return render(request, "story/board.html", context=context)
 
 

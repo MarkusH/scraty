@@ -108,6 +108,7 @@
 </script>
 
 <script>
+  const BASE_URL = "{{ base_url }}";
   $(function () {
     const store = {
       state: {
@@ -263,7 +264,7 @@
           var that = this;
           $.ajax({
             type: (this.id === null) ? "POST" : "PUT",
-            url: (this.id === null) ? "/stories/" : `/stories/${this.id}/`,
+            url: (this.id === null) ? `${BASE_URL}/stories/` : `${BASE_URL}/stories/${this.id}/`,
             data: {
               id: this.id,
               title: this.title,
@@ -295,7 +296,7 @@
           if (window.confirm(`Do you really want to delete the story "${this.title}"`)) {
             $.ajax({
               type: "DELETE",
-              url: `/stories/${this.id}/`,
+              url: `${BASE_URL}/stories/${this.id}/`,
             }).done(
               function (data) {
                 that.$root.store.deleteStory(that.id);
@@ -316,7 +317,7 @@
           ({ cardId, storyId } = JSON.parse(event.dataTransfer.getData("data")));
           $.ajax({
             type: "POST",
-            url: `/cards/${cardId}/move/`,
+            url: `${BASE_URL}/cards/${cardId}/move/`,
             data: {
               story: this.id,
               status: newStatus,
@@ -389,7 +390,7 @@
           var that = this;
           $.ajax({
             type: (this.id === null) ? "POST" : "PUT",
-            url: (this.id === null) ? "/cards/" : `/cards/${this.id}/`,
+            url: (this.id === null) ? `${BASE_URL}/cards/` : `${BASE_URL}/cards/${this.id}/`,
             data: {
               id: this.id,
               story: this.storyId,
@@ -422,7 +423,7 @@
           var that = this;
           $.ajax({
             type: "DELETE",
-            url: `/cards/${this.id}/`,
+            url: `${BASE_URL}/cards/${this.id}/`,
           }).done(
             function (data) {
               that.$root.store.deleteCard(that.id, that.storyId);
@@ -453,7 +454,7 @@
             var that = this;
             $.ajax({
               type: "GET",
-              url: "/stories/",
+              url: `${BASE_URL}/stories/`,
             }).done(
               function (data) {
                 that.$root.store.set(data.stories);
