@@ -84,8 +84,8 @@
 </script>
 
 <script type="text/x-template" id="card-template">
-  <div class="card" :style="{ backgroundColor: '#' + (user.color || 'ffffff') }" :draggable="id!==null && !editing" v-on:dragstart="dragStart">
-    <div class="card-divider actions align-right">
+  <div class="card" :style="{ backgroundColor: '#' + (user.color || 'ffffff') }" :draggable="id!==null && !editing && dragging" v-on:dragstart="dragStart">
+    <div class="card-divider actions align-right" v-on:mousedown="dragging = true" v-on:mouseup="dragging = false" :style="{ cursor: dragging ? 'grabbing' : 'grab' }">
       <a v-on:click="save" class="button-link" v-if="editing"><i class="fi-save"></i></a>
       <a v-on:click="abortEdit" class="button-link" v-if="editing"><i class="fi-x"></i></a>
       <a v-on:click="startEdit" class="button-link" v-if="!editing"><i class="fi-page-edit"></i></a>
@@ -353,6 +353,7 @@
           user: this.card && this.card.user || { name: "", color: "" },
           oldText: "",
           oldUserName: "",
+          dragging: false,
           editing: !(this.card && this.card.id),
           errors: {},
         }
