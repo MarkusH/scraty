@@ -84,8 +84,9 @@
 </script>
 
 <script type="text/x-template" id="card-template">
-  <div class="card" :style="{ backgroundColor: '#' + (user.color || 'ffffff') }" :draggable="id!==null && !editing && dragging" v-on:dragstart="dragStart">
+  <div class="card" :style="{ backgroundColor: '#' + (user.color || 'ffffff') }" :draggable="id!==null && !editing && dragging" v-on:dragstart="dragStart" :id="id">
     <div class="card-divider actions align-right" v-on:mousedown="dragging = true" v-on:mouseup="dragging = false" :style="{ cursor: dragging ? 'grabbing' : 'grab' }">
+      <a v-on:click="scrollTo" class="button-link" v-if="id!==null"><i class="fi-link"></i></a>
       <a v-on:click="save" class="button-link" v-if="editing"><i class="fi-save"></i></a>
       <a v-on:click="abortEdit" class="button-link" v-if="editing"><i class="fi-x"></i></a>
       <a v-on:click="startEdit" class="button-link" v-if="!editing"><i class="fi-page-edit"></i></a>
@@ -440,6 +441,18 @@
         dragStart(event) {
           event.dataTransfer.setData("data", JSON.stringify({ cardId: this.id, storyId: this.storyId }));
         },
+        scrollTo() {
+          slideToAndHighlightCard(this.id);
+          window.location.hash = `#${this.id}`;
+        },
+      },
+      mounted() {
+        var that = this;
+        this.$nextTick(function () {
+          if (window.location.hash.substr(1) === that.id) {
+            slideToAndHighlightCard(that.id);
+          }
+        })
       }
     });
 
@@ -509,6 +522,26 @@
         this.refreshData();
       }
     })
+    function slideToAndHighlightCard(card) {
+      var e = document.getElementById(card);
+      if (e !== null) {
+        color = e.style.backgroundColor;
+        e.scrollIntoView();
+        e.animate([
+          { boxShadow: 'none' },
+          { boxShadow: `0px 0px 10px 7px ${color}`, offset: 0.25 },
+          { boxShadow: `0px 0px 10px 7px ${color}`, offset: 0.75 },
+          { boxShadow: 'none' },
+        ], {
+          delay: 500,
+          direction: 'normal',
+          duration: 4000,
+          easing: 'ease',
+        });
+      }
+    }
+    slideToAndHighlightCard(window.location.hash.substr(1));
+    window.addEventListener('hashchange', function() {slideToAndHighlightCard(window.location.hash.substr(1));});
   });
 </script>
 {% endblock %}
