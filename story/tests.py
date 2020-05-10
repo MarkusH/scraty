@@ -1,7 +1,10 @@
+import os
+import time
+
 from django.test import LiveServerTestCase
 from selenium.common.exceptions import TimeoutException
+from selenium.webdriver import Chrome, ChromeOptions, Firefox, FirefoxOptions
 from selenium.webdriver.common.by import By
-from selenium.webdriver.firefox.webdriver import WebDriver
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
@@ -12,7 +15,17 @@ class SeleniumTests(LiveServerTestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.selenium = WebDriver()
+        browser = os.getenv("BROWSER", "firefox")
+        if browser == "chrome":
+            options = ChromeOptions()
+            options.headless = True
+            cls.selenium = Chrome(options=options)
+        elif browser == "firefox":
+            options = FirefoxOptions()
+            options.headless = True
+            cls.selenium = Firefox(options=options)
+        else:
+            raise ValueError(f"Unknown browser '{browser}'!")
         cls.selenium.implicitly_wait(5)
 
     @classmethod
@@ -22,7 +35,7 @@ class SeleniumTests(LiveServerTestCase):
 
     def go_to_board(self):
         self.selenium.get(self.live_server_url)
-        return WebDriverWait(self.selenium, 2).until(
+        return WebDriverWait(self.selenium, 10).until(
             EC.presence_of_element_located((By.CLASS_NAME, "board"))
         )
 
@@ -99,6 +112,7 @@ class SeleniumTests(LiveServerTestCase):
         story.find_element_by_name("title").send_keys("My first Story")
         story.find_element_by_name("link").send_keys("https://google.com")
         story.find_element_by_name("save").click()
+        time.sleep(0.5)
 
         story_obj = Story.objects.get()
         self.assertEqual(story_obj.title, "My first Story")
@@ -152,6 +166,7 @@ class SeleniumTests(LiveServerTestCase):
         card.find_element_by_name("text").send_keys("My first Task")
         card.find_element_by_name("user").send_keys("Jane")
         card.find_element_by_name("save").click()
+        time.sleep(0.5)
 
         card_obj = Card.objects.select_related("user").get()
         self.assertEqual(card_obj.text, "My first Task")
