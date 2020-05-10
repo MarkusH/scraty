@@ -1,0 +1,73 @@
+name: CI
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+jobs:
+  black:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+      with:
+        python-version: "3.8"
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip black
+    - name: Running black
+      run: |
+        black --check --diff .
+  flake8:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+      with:
+        python-version: "3.8"
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip flake8
+    - name: Running flake8
+      run: |
+        flake8 --count --show-source --statistics
+  isort:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+      with:
+        python-version: "3.8"
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip isort
+    - name: Running isort
+      run: |
+        isort --check-only --diff --recursive
+
+  tests:
+    needs: [black, flake8, isort]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        browser:
+         - chrome
+         - firefox
+    env:
+      BROWSER: "${{ matrix.browser }}"
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: "3.8"
+      - name: Install dependenciess
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          python -m pip install webdrivermanager
+          mkdir -p ~/.local/bin
+          export PATH="$(readlink -f ~/.local/bin):$PATH"
+          webdrivermanager --linkpath ~/.local/bin "$BROWSER"
+          python -m pip install -r requirements.txt -r requirements-test.txt
+      - name: Test
+        run: python manage.py test
