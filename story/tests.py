@@ -59,7 +59,7 @@ class SeleniumTests(LiveServerTestCase):
         story_obj = Story.objects.create(title="My first Story")
 
         WebDriverWait(self.selenium, 11).until(
-            EC.presence_of_element_located((By.ID, story_obj.pk))
+            EC.presence_of_element_located((By.ID, f"s{story_obj.pk}"))
         )
 
         toggle_polling = self.selenium.find_element_by_name("toggle-polling")
@@ -74,7 +74,7 @@ class SeleniumTests(LiveServerTestCase):
         self.assertRaises(
             TimeoutException,
             WebDriverWait(self.selenium, 11).until,
-            EC.presence_of_element_located((By.ID, card_obj.pk)),
+            EC.presence_of_element_located((By.ID, f"c{card_obj.pk}")),
         )
 
     def test_go_online(self):
@@ -89,7 +89,7 @@ class SeleniumTests(LiveServerTestCase):
         self.assertRaises(
             TimeoutException,
             WebDriverWait(self.selenium, 11).until,
-            EC.presence_of_element_located((By.ID, story_obj.pk)),
+            EC.presence_of_element_located((By.ID, f"s{story_obj.pk}")),
         )
 
         toggle_polling.click()
@@ -97,7 +97,7 @@ class SeleniumTests(LiveServerTestCase):
         self.assertIn("success", toggle_polling.get_attribute("class"))
 
         WebDriverWait(self.selenium, 11).until(
-            EC.presence_of_element_located((By.ID, story_obj.pk))
+            EC.presence_of_element_located((By.ID, f"s{story_obj.pk}"))
         )
 
     def test_add_story_button_click(self):
@@ -118,7 +118,7 @@ class SeleniumTests(LiveServerTestCase):
         self.assertEqual(story_obj.title, "My first Story")
         self.assertEqual(story_obj.link, "https://google.com")
 
-        story = board.find_element_by_id(story_obj.pk)
+        story = board.find_element_by_id(f"s{story_obj.pk}")
         title = story.find_element_by_css_selector(".display .title")
         self.assertEqual(title.text, "My first Story")
         link = story.find_element_by_css_selector(".display .link a")
@@ -160,7 +160,7 @@ class SeleniumTests(LiveServerTestCase):
 
         board = self.go_to_board()
 
-        story = board.find_element_by_id(story_obj.pk)
+        story = board.find_element_by_id(f"s{story_obj.pk}")
         story.find_element_by_name("new-card").click()
         card = board.find_element_by_class_name("card")
         card.find_element_by_name("text").send_keys("My first Task")
@@ -173,7 +173,7 @@ class SeleniumTests(LiveServerTestCase):
         self.assertEqual(card_obj.user.name, "Jane")
         self.assertEqual(card_obj.story_id, story_obj.pk)
 
-        card = board.find_element_by_id(card_obj.pk)
+        card = board.find_element_by_id(f"c{card_obj.pk}")
         self.assertEqual(
             card.get_attribute("style"), "background-color: rgb(85, 212, 245);"
         )

@@ -39,7 +39,7 @@
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.0/dist/jquery.min.js" integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ=" crossorigin="anonymous"></script>
 
 <script type="text/x-template" id="story-template">
-  <tr :id="id">
+  <tr :id="'s' + id">
     <td>
       <div class="display" v-show="!editing">
         <div class="title">{% verbatim %}{{ title }}{% endverbatim %}</div>
@@ -84,8 +84,8 @@
 </script>
 
 <script type="text/x-template" id="card-template">
-  <div class="card" :style="{ backgroundColor: '#' + (user.color || 'ffffff') }" :draggable="id!==null && !editing && dragging" v-on:dragstart="dragStart" :id="id">
-    <div class="card-divider actions align-right" v-on:mousedown="dragging = true" v-on:mouseup="dragging = false" :style="{ cursor: dragging ? 'grabbing' : 'grab' }">
+  <div class="card" :style="{ backgroundColor: '#' + (user.color || 'ffffff') }" :draggable="id!==null && !editing && dragging" v-on:dragstart="dragStart" :id="'c' + id">
+    <div class="card-divider actions align-right handle" v-on:mousedown="dragging = true" v-on:mouseup="dragging = false" :style="{ cursor: dragging ? 'grabbing' : 'grab' }">
       <a v-on:click="scrollTo" class="button-link" v-if="id!==null" name="link"><i class="fi-link"></i></a>
       <a v-on:click.once="save" class="button-link" v-if="editing" name="save"><i class="fi-save"></i></a>
       <a v-on:click="abortEdit" class="button-link" v-if="editing" name="abort-edit"><i class="fi-x"></i></a>
@@ -444,7 +444,7 @@
         },
         scrollTo() {
           slideToAndHighlightCard(this.id);
-          window.location.hash = `#${this.id}`;
+          window.location.hash = `#c${this.id}`;
         },
       },
       mounted() {
