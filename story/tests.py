@@ -4,6 +4,7 @@ import time
 from django.test import LiveServerTestCase
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver import Chrome, ChromeOptions, Firefox, FirefoxOptions
+from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
@@ -181,3 +182,22 @@ class SeleniumTests(LiveServerTestCase):
         self.assertEqual(title.text, "My first Task")
         link = story.find_element_by_css_selector(".display .user")
         self.assertEqual(link.text, "Jane")
+
+    def test_move_card(self):
+        story_obj = Story.objects.create(title="My first Story")
+        card_obj = Card.objects.create(
+            text="My first Card", status=Card.Status.IN_PROGRESS, story=story_obj
+        )
+
+        board = self.go_to_board()
+        handle = board.find_element_by_css_selector(f"#c{card_obj.pk} .handle")
+        verify_column = board.find_elements_by_css_selector(f"#s{story_obj.id} td")[3]
+        ac = ActionChains(self.selenium)
+        ac.move_to_element_with_offset(handle, 10, 10)
+        ac.click_and_hold()
+        ac.move_to_element_with_offset(verify_column, 10, 10)
+        ac.release()
+        ac.perform()
+        time.sleep(0.5)
+        card_obj.refresh_from_db()
+        self.assertEqual(card_obj.status, Card.Status.VERIFY.value)
