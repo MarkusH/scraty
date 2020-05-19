@@ -451,7 +451,7 @@
       mounted() {
         var that = this;
         this.$nextTick(function () {
-          if (window.location.hash.substr(1) === that.id) {
+          if (window.location.hash.substr(2) === that.id) {
             slideToAndHighlightCard(that.id);
           }
         })
@@ -525,7 +525,7 @@
       }
     })
     function slideToAndHighlightCard(card) {
-      var e = document.getElementById(card);
+      var e = document.getElementById(`c${card}`);
       if (e !== null) {
         color = e.style.backgroundColor;
         e.scrollIntoView();
