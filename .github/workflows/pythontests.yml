@@ -14,7 +14,8 @@ jobs:
         python-version: "3.8"
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip black
+        python -m pip install --upgrade pip
+        python -m pip install --upgrade black==20.8b1
     - name: Running black
       run: |
         black --check --diff .
@@ -27,7 +28,8 @@ jobs:
         python-version: "3.8"
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip flake8
+        python -m pip install --upgrade pip
+        python -m pip install --upgrade flake8==3.8.3
     - name: Running flake8
       run: |
         flake8 --count --show-source --statistics
@@ -40,10 +42,11 @@ jobs:
         python-version: "3.8"
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip isort
+        python -m pip install --upgrade pip
+        python -m pip install --upgrade isort==5.5.2
     - name: Running isort
       run: |
-        isort --check-only --diff --recursive
+        isort . --check-only --diff
 
   tests:
     needs: [black, flake8, isort]
